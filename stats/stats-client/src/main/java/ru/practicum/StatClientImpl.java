@@ -1,3 +1,5 @@
+package ru.practicum;
+
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -21,25 +23,25 @@ public class StatClientImpl implements StatClient {
                 .build();
     }
 
-    public Object getStats(final Object hitStatsDto) {
+    public HitDto saveHit(final HitDto hitDto) {
         return restClient
                 .post()
                 .uri(HIT_PATH)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .body(hitStatsDto)
+                .body(hitDto)
                 .retrieve()
-                .body(Object.class);
+                .body(HitDto.class);
     }
 
-    public List<Object> createEndpointHit(final String startTime,
-                                               final String endTime,
-                                               final List<String> uris,
-                                               final Boolean unique) {
+    public List<HitStatDto> getStats(final String start,
+                                     final String end,
+                                     final List<String> uris,
+                                     final Boolean unique) {
         return restClient
                 .get()
                 .uri(uriBuilder -> uriBuilder.path(STATS_PATH)
-                        .queryParam("start", startTime)
-                        .queryParam("end", endTime)
+                        .queryParam("start", start)
+                        .queryParam("end", end)
                         .queryParam("uris", uris)
                         .queryParam("unique", unique)
                         .build())

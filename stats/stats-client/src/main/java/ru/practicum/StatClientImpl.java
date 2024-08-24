@@ -1,5 +1,6 @@
 package ru.practicum;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -11,15 +12,14 @@ import java.util.List;
 @Service
 public class StatClientImpl implements StatClient {
 
-    private static final  String BASE_URL = "http//localhost:9090";
     private static final String STATS_PATH = "/stats";
     private static final String HIT_PATH = "/hit";
 
     RestClient restClient;
 
-    public StatClientImpl() {
+    public StatClientImpl(@Value("${stats-server.url}") String statsServiceUri) {
         restClient = RestClient.builder()
-                .baseUrl(BASE_URL)
+                .baseUrl(statsServiceUri)
                 .build();
     }
 

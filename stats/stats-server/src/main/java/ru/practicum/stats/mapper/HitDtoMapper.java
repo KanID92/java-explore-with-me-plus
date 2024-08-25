@@ -1,17 +1,15 @@
 package ru.practicum.stats.mapper;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.HitDto;
 import ru.practicum.stats.entity.Hit;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
+import static ru.practicum.stats.utils.Constants.formatter;
 
+@UtilityClass
 public class HitDtoMapper {
-    private HitDtoMapper() {
-    }
-
-    static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public static HitDto toHitDto(Hit hit) {
         String dateTime = hit.getTimestamp().format(formatter);

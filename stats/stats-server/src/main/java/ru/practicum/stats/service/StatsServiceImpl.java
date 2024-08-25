@@ -8,12 +8,12 @@ import ru.practicum.stats.entity.Hit;
 import ru.practicum.stats.repository.StatsRepository;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.practicum.stats.mapper.HitDtoMapper.dtoToHit;
 import static ru.practicum.stats.mapper.HitDtoMapper.toHitDto;
+import static ru.practicum.stats.utils.Constants.formatter;
 
 @RequiredArgsConstructor
 @Service
@@ -27,7 +27,6 @@ public class StatsServiceImpl implements StatsService {
 
     @Override
     public List<HitStatDto> getHits(String start, String end, List<String> uris, Boolean unique) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime localDateTimeStart = LocalDateTime.parse(start, formatter);
         LocalDateTime localDateTimeEnd = LocalDateTime.parse(end, formatter);
         List<Hit> data;

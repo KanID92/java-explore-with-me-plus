@@ -12,6 +12,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=user92
       - SPRING_DATASOURCE_PASSWORD=user92
 
+
   stats-db:
     image: postgres:16.1
     container_name: postgres-ewm-stats-db

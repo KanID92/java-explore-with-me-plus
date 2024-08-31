@@ -5,9 +5,9 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewm.controller.admin.UserGetAllParams;
-import ru.practicum.ewm.dto.UserCreateDto;
-import ru.practicum.ewm.dto.UserDto;
+import ru.practicum.ewm.controller.admin.AdminUsersGetAllParams;
+import ru.practicum.ewm.dto.user.UserCreateDto;
+import ru.practicum.ewm.dto.user.UserDto;
 import ru.practicum.ewm.entity.User;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.mapper.UserMapper;
@@ -32,9 +32,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public List<UserDto> getAll(UserGetAllParams userGetAllParams) {
+    public List<UserDto> getAll(AdminUsersGetAllParams adminUsersGetAllParams) {
         List<User> userSearchList = userRepository.findAllByIdIn(
-                Arrays.asList(userGetAllParams.ids()), PageRequest.of(userGetAllParams.from(), userGetAllParams.size()));
+                Arrays.asList(adminUsersGetAllParams.ids()), PageRequest.of(adminUsersGetAllParams.from(), adminUsersGetAllParams.size()));
 
         return userSearchList.stream()
                 .map(userMapper::userToUserDto)

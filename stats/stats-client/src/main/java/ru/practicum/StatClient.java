@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface StatClient {
 
-    HitDto saveHit(HitDto hitDto);
+    void saveHit(HitDto hitDto);
 
     List<HitStatDto> getStats(final String startTime,
                               final String endTime,

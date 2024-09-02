@@ -12,6 +12,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=user92
       - SPRING_DATASOURCE_PASSWORD=user92
 
+
   stats-db:
     image: postgres:16.1
     container_name: postgres-ewm-stats-db
@@ -38,13 +39,14 @@ services:
 
   ewm-db:
     image: postgres:16.1
-    container_name: postgres-ewm-service-db
+    container_name: ewm-db
     ports:
       - "8432:5432"
     environment:
+      - POSTGRES_DB=ewm-db
       - POSTGRES_USER=main
       - POSTGRES_PASSWORD=main
-      - POSTGRES_DB=ewm-service
+
 
 
 

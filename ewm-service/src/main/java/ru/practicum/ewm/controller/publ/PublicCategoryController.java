@@ -1,4 +1,4 @@
-package ru.practicum.ewm.controller.priv;
+package ru.practicum.ewm.controller.publ;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/categories")
 @RequiredArgsConstructor
-public class PrivateCategoryController {
+public class PublicCategoryController {
     private final CategoryService categoryService;
 
     @GetMapping

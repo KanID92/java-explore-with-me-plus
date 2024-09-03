@@ -3,8 +3,8 @@ package ru.practicum.ewm.dto.event;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.PositiveOrZero;
-import ru.practicum.ewm.entity.EventState;
 import ru.practicum.ewm.entity.Location;
+import ru.practicum.ewm.entity.StateAction;
 
 import java.time.LocalDateTime;
 
@@ -29,7 +29,7 @@ public record UpdateEventAdminRequest(
 
         Boolean requestModeration,
 
-        EventState stateAction,
+        StateAction stateAction,
 
         @Min(3) @Max(120)
         String title

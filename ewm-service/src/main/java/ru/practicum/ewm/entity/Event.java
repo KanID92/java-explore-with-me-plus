@@ -26,7 +26,7 @@ public class Event {
     @JoinColumn(name = "CATEGORY_ID")
     private Category category;
 
-    //TODO ??? Long confirmedRequests нужно ли
+    //TODO Long confirmedRequests
 
     @Column(name = "CREATED_ON")
     private LocalDateTime createOn;

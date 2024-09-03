@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewm.controller.params.EventUpdateParams;
 import ru.practicum.ewm.dto.event.EventFullDto;
 import ru.practicum.ewm.dto.event.EventShortDto;
 import ru.practicum.ewm.dto.event.NewEventDto;
@@ -64,7 +65,7 @@ public class PrivateEventController {
         log.info("==> PATCH. /users/{userId}/events/{eventId} " +
                 "Updating event with id: {}, by user with id: {}. Updating: {}", eventId, userId, updateEventDto);
         EventFullDto receivedEventDto = eventService.update(
-                userId, new PrivateEventUpdateParams(eventId, updateEventDto));
+                userId, new EventUpdateParams(userId, updateEventDto, null));
         log.info("<== PATCH. /users/{userId}/events/{eventId} " +
                 "Returning updated event with id: {}, by user with id: {}. Updating: {}",
                 eventId, userId, receivedEventDto);

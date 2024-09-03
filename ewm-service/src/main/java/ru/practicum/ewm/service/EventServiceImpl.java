@@ -4,8 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import ru.practicum.StatClientImpl;
+import ru.practicum.ewm.controller.params.EventUpdateParams;
 import ru.practicum.ewm.controller.priv.PrivateEventGetAllParams;
-import ru.practicum.ewm.controller.priv.PrivateEventUpdateParams;
 import ru.practicum.ewm.dto.event.EventFullDto;
 import ru.practicum.ewm.dto.event.EventShortDto;
 import ru.practicum.ewm.dto.event.NewEventDto;
@@ -32,6 +33,8 @@ public class EventServiceImpl implements EventService {
     private final LocationRepository locationRepository;
     private final CategoryRepository categoryRepository;
 
+    private final StatClientImpl statClient;
+
     @Override
     public EventFullDto create(long userId, NewEventDto newEventDto) {
         User initiator = userRepository.findById(userId)
@@ -48,10 +51,10 @@ public class EventServiceImpl implements EventService {
     public List<EventShortDto> getAll(long initiatorId, PrivateEventGetAllParams params) {
         User user = userRepository.findById(initiatorId)
                 .orElseThrow(() -> new NotFoundException("User with id " + initiatorId + " not found"));
+//        TODO Statistic?
 
         Pageable page = PageRequest.of(params.from(), params.size());
-        //TODO
-        //TODO Statistic?
+
         return  eventRepository.findAllByInitiatorId(initiatorId, page).stream()
                 .map(eventMapper::eventToEventShortDto)
                 .toList();
@@ -63,34 +66,54 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
         Event receivedEvent = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
-        //TODO Statistic?
+        //statClient.saveHit();
+        //TODO Statistic? Reading?
         return eventMapper.eventToEventFullDto(receivedEvent);
     }
-
     @Override
-    public EventFullDto update(long userId, PrivateEventUpdateParams updateParams) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
-        Event event = eventRepository.findById(updateParams.eventId())
-                .orElseThrow(() -> new NotFoundException("Event with id " + updateParams.eventId() + " not found"));
+    public EventFullDto update(long eventId, EventUpdateParams updateParams) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
 
-        if (userId != event.getInitiator().getId()) {
-            throw new AccessException("User with id = " + userId + " do not initiate this event");
+        Event updatedEvent;
+
+        if (updateParams.updateEventUserRequest() != null) {
+            User user = userRepository.findById(updateParams.userId())
+                .orElseThrow(() -> new NotFoundException("User with id " + updateParams.userId()+ " not found"));
+
+            if (updateParams.userId() != event.getInitiator().getId()) {
+                throw new AccessException("User with id = " + updateParams.userId() + " do not initiate this event");
+            }
+
+            if (event.getState() != EventState.PENDING && event.getState() != EventState.CANCELED) {
+                throw new ConflictException(
+                        "User. Cannot update event: only pending or canceled events can be changed");
+            }
+
+            if (updateParams.updateEventUserRequest().eventDate().isBefore(LocalDateTime.now().plusHours(2))) {
+                throw new ConflictException(
+                        "User. Cannot update event: event date must be not earlier then after 2 hours ");
+            }
+
+            eventMapper.updateEventUserRequestToEvent(event, updateParams.updateEventUserRequest());
         }
 
-        if (event.getState() != EventState.PENDING && event.getState() != EventState.CANCELED) {
-            throw new ConflictException("Cannot update event: only pending or canceled events can be changed");
+        if (updateParams.updateEventAdminRequest() != null) {
+            if (event.getState() != EventState.PENDING) {
+                throw new ConflictException("Admin. Cannot update event: only pending events can be changed");
+            }
+
+            if (updateParams.updateEventAdminRequest().eventDate().isBefore(LocalDateTime.now().plusHours(1))) {
+                throw new ConflictException(
+                        "Admin. Cannot update event: event date must be not earlier then after 2 hours ");
+            }
+
+            eventMapper.updateEventAdminRequestToEvent(event, updateParams.updateEventAdminRequest());
         }
 
-        if (updateParams.updateEventUserRequest().eventDate().isBefore(LocalDateTime.now().plusHours(2))) { //TODO ? check in Controller?
-            throw new ConflictException("Cannot update event: event date must be not earlier then after 2 hours ");
-        }
-
-        eventMapper.updateEventUserRequestToEvent(event, updateParams.updateEventUserRequest());
-
-        Event updatedEvent = eventRepository.save(event);
+        updatedEvent = eventRepository.save(event);
 
         return eventMapper.eventToEventFullDto(updatedEvent);
-
     }
+
 }

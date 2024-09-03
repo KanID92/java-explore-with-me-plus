@@ -1,7 +1,7 @@
 package ru.practicum.ewm.service;
 
+import ru.practicum.ewm.controller.params.EventUpdateParams;
 import ru.practicum.ewm.controller.priv.PrivateEventGetAllParams;
-import ru.practicum.ewm.controller.priv.PrivateEventUpdateParams;
 import ru.practicum.ewm.dto.event.EventFullDto;
 import ru.practicum.ewm.dto.event.EventShortDto;
 import ru.practicum.ewm.dto.event.NewEventDto;
@@ -16,6 +16,6 @@ public interface EventService {
 
     EventFullDto getById(long userId, long eventId);
 
-    EventFullDto update(long userId, PrivateEventUpdateParams updateParams);
+    EventFullDto update(long eventId, EventUpdateParams updateParams);
 
 }

@@ -28,7 +28,8 @@ public record NewEventDto(
 
         boolean requestModeration,
 
-        @NotNull @Min(3) @Max(120) String title
+        @NotNull @Min(3) @Max(120)
+        String title
 
 ) {
 }

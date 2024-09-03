@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.practicum.ewm.exception.AccessException;
 
 @Slf4j
 @RestControllerAdvice
@@ -27,6 +28,12 @@ public class ErrorHandler {
         return createApiError(e, HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiError handleAccessException(final AccessException e) {
+        log.info("Access denied: {}", e.getMessage());
+        return createApiError(e, HttpStatus.FORBIDDEN);
+    }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

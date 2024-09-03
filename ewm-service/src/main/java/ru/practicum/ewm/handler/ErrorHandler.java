@@ -2,6 +2,7 @@ package ru.practicum.ewm.handler;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -27,6 +28,12 @@ public class ErrorHandler {
         return createApiError(e, HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler({DataAccessException.class})
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleIllegalArgumentException(final Exception e) {
+        log.warn("Conflict", e);
+        return createApiError(e, HttpStatus.CONFLICT);
+    }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

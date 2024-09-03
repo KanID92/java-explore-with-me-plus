@@ -47,6 +47,4 @@ public class AdminUserController {
         log.info("<== GET. User list with size: {}", receivedUserDtoList.size());
         return receivedUserDtoList;
     }
-
-
 }

@@ -9,14 +9,12 @@ import ru.practicum.ewm.controller.priv.PrivateEventUpdateParams;
 import ru.practicum.ewm.dto.event.EventFullDto;
 import ru.practicum.ewm.dto.event.EventShortDto;
 import ru.practicum.ewm.dto.event.NewEventDto;
-import ru.practicum.ewm.entity.Event;
-import ru.practicum.ewm.entity.EventState;
-import ru.practicum.ewm.entity.Location;
-import ru.practicum.ewm.entity.User;
+import ru.practicum.ewm.entity.*;
 import ru.practicum.ewm.exception.AccessException;
 import ru.practicum.ewm.exception.ConflictException;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.mapper.EventMapper;
+import ru.practicum.ewm.repository.CategoryRepository;
 import ru.practicum.ewm.repository.EventRepository;
 import ru.practicum.ewm.repository.LocationRepository;
 import ru.practicum.ewm.repository.UserRepository;
@@ -32,12 +30,14 @@ public class EventServiceImpl implements EventService {
     private final UserRepository userRepository;
     private final EventMapper eventMapper;
     private final LocationRepository locationRepository;
+    private final CategoryRepository categoryRepository;
 
     @Override
     public EventFullDto create(long userId, NewEventDto newEventDto) {
         User initiator = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
-        //TODO Category category = categoryRepository.
+        Category category = categoryRepository.findById(newEventDto.category())
+                .orElseThrow(() -> new NotFoundException("Category with id " + newEventDto.category() + " not found"));
         Location location = locationRepository.save(newEventDto.location());
         Event event = eventMapper.newEventDtoToEvent(newEventDto, initiator, category, location);
         Event savedEvent = eventRepository.save(event);

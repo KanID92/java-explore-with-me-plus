@@ -8,45 +8,69 @@ import ru.practicum.ewm.entity.*;
 import java.time.LocalDateTime;
 
 @Mapper(componentModel = "spring")
-public interface EventMapper {
+public abstract class EventMapper {
 
     @Mapping(target = "initiator", source = "initiator")
     @Mapping(target = "category", source = "category")
     @Mapping(target = "location", source = "location")
-    @Mapping(target = "createIn", expression = "java(getLocalDatetime())")
+    @Mapping(target = "createOn", expression = "java(getCurrentLocalDatetime())")
     @Mapping(target = "state", expression = "java(getPendingEventState())")
-    Event newEventDtoToEvent(
-            NewEventDto newEventDto, User initiator, Category category, Location location);
+    @Mapping(target = "id", ignore = true)
+    public abstract Event newEventDtoToEvent(
+            NewEventDto newEventDto, User initiator, Category category, Location location, LocalDateTime createOn);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
             nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
-    void updateEventUserRequestToEvent(@MappingTarget Event event, UpdateEventUserRequest updateEventUserRequest);
+    @Mapping(target = "category", ignore = true)
+    @Mapping(target = "state", ignore = true)
+    @Mapping(target = "location", ignore = true)
+    public abstract void updateEventUserRequestToEvent(@MappingTarget Event event, UpdateEventUserRequest updateEventUserRequest);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
             nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
-    @Mapping(target = "state", expression = "java(getAdminEventState(UpdateEventAdminRequest updateEventAdminRequest))")
-    void updateEventAdminRequestToEvent(@MappingTarget Event event, UpdateEventAdminRequest updateEventAdminRequest);
+    @Mapping(target = "publishedOn", expression =
+            "java(getPublishedOn(updateEventAdminRequest))")
+    @Mapping(target = "category", ignore = true)
+    @Mapping(target = "state", expression = "java(getAdminEventState(updateEventAdminRequest))")
+    @Mapping(target = "location", ignore = true)
+    public abstract void updateEventAdminRequestToEvent(
+            @MappingTarget Event event, UpdateEventAdminRequest updateEventAdminRequest);
 
-    EventFullDto eventToEventFullDto(Event event);
+    public abstract EventFullDto eventToEventFullDto(Event event);
 
-    EventShortDto eventToEventShortDto(Event event);
+    public abstract EventShortDto eventToEventShortDto(Event event);
 
-
-    private LocalDateTime getLocalDatetime() {
+    @Named("getCurrentLocalDatetime")
+    LocalDateTime getCurrentLocalDatetime() {
         return LocalDateTime.now();
     }
 
-    private EventState getPendingEventState() {
+    @Named("getPendingEventState")
+    EventState getPendingEventState() {
         return EventState.PENDING;
     }
 
-    private EventState getAdminEventState(UpdateEventAdminRequest updateEventAdminRequest) {
+    @Named("getAdminEventState")
+    EventState getAdminEventState(UpdateEventAdminRequest updateEventAdminRequest) {
         switch (updateEventAdminRequest.stateAction()) {
             case StateAction.PUBLISH_EVENT -> {
                 return EventState.PUBLISHED;
             }
             case StateAction.REJECT_EVENT -> {
                 return EventState.CANCELED;
+            }
+            default -> throw new ValidationException("EventMapper: Invalid state action");
+        }
+    }
+
+    @Named("getPublishedOn")
+    LocalDateTime getPublishedOn(UpdateEventAdminRequest updateEventAdminRequest) {
+        switch (updateEventAdminRequest.stateAction()) {
+            case StateAction.PUBLISH_EVENT -> {
+                return getCurrentLocalDatetime();
+            }
+            case StateAction.REJECT_EVENT -> {
+                return null;
             }
             default -> throw new ValidationException("EventMapper: Invalid state action");
         }

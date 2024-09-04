@@ -3,6 +3,7 @@ package ru.practicum.ewm.entity;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 @Entity
@@ -10,6 +11,7 @@ import lombok.Setter;
 @Setter
 @EqualsAndHashCode(of = {"id"})
 @Table(name = "LOCATIONS")
+@RequiredArgsConstructor
 public class Location {
 
     @Id

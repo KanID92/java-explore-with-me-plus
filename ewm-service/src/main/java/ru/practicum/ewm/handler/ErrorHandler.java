@@ -35,6 +35,7 @@ public class ErrorHandler {
         log.warn("Conflict", e);
         return createApiError(e, HttpStatus.CONFLICT);
     }
+
     @ExceptionHandler
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ApiError handleAccessException(final AccessException e) {

@@ -4,7 +4,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewm.controller.params.EventGetByIdParams;
+import ru.practicum.ewm.controller.params.EventUpdateParams;
+import ru.practicum.ewm.controller.params.search.EventSearchParams;
+import ru.practicum.ewm.controller.params.search.PrivateSearchParams;
 import ru.practicum.ewm.dto.event.EventFullDto;
 import ru.practicum.ewm.dto.event.EventShortDto;
 import ru.practicum.ewm.dto.event.NewEventDto;
@@ -22,6 +27,7 @@ public class PrivateEventController {
     private final EventService eventService;
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public EventFullDto create(@PathVariable long userId, @Valid @RequestBody NewEventDto newEventDto) {
         log.info("==> POST. /users/{userId}/events " +
                 "Creating new event {} by user with id: {}", newEventDto, userId);
@@ -38,8 +44,12 @@ public class PrivateEventController {
             @RequestParam @DefaultValue("10") int size) {
         log.info("==> GET. /users/{userId}/events " +
                 "Getting all user id {} event: from {}, size {}", userId, from, size);
+        EventSearchParams searchParams = new EventSearchParams();
+        searchParams.setPrivateSearchParams(new PrivateSearchParams(userId));
+        searchParams.setFrom(from);
+        searchParams.setSize(size);
         List<EventShortDto> receivedEventsDtoList =
-                eventService.getAll(userId, new PrivateEventGetAllParams(from, size));
+                eventService.getAllByInitiatorOrPublic(searchParams, null);
         //TODO Statistic service
         log.info("<== GET. /users/{userId}/events " +
                 "Returning all user id {} event: size {}", userId, receivedEventsDtoList.size());
@@ -50,7 +60,7 @@ public class PrivateEventController {
     public EventFullDto getById(@PathVariable long userId, @PathVariable long eventId) {
         log.info("==> GET. /users/{userId}/events/{eventId} " +
                 "Getting event with id: {}, by user with id: {}", eventId, userId);
-        EventFullDto receivedEventDto = eventService.getById(userId, eventId);
+        EventFullDto receivedEventDto = eventService.getById(new EventGetByIdParams(userId, eventId), null);
         //TODO Statistic service
         log.info("<== GET. /users/{userId}/events/{eventId} " +
                 "Returning event with id: {}", receivedEventDto.id());
@@ -64,7 +74,7 @@ public class PrivateEventController {
         log.info("==> PATCH. /users/{userId}/events/{eventId} " +
                 "Updating event with id: {}, by user with id: {}. Updating: {}", eventId, userId, updateEventDto);
         EventFullDto receivedEventDto = eventService.update(
-                userId, new PrivateEventUpdateParams(eventId, updateEventDto));
+                eventId, new EventUpdateParams(userId, updateEventDto, null));
         log.info("<== PATCH. /users/{userId}/events/{eventId} " +
                 "Returning updated event with id: {}, by user with id: {}. Updating: {}",
                 eventId, userId, receivedEventDto);

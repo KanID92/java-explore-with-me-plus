@@ -1,7 +1,9 @@
 package ru.practicum.ewm.service;
 
-import ru.practicum.ewm.controller.priv.PrivateEventGetAllParams;
-import ru.practicum.ewm.controller.priv.PrivateEventUpdateParams;
+import ru.practicum.HitDto;
+import ru.practicum.ewm.controller.params.EventGetByIdParams;
+import ru.practicum.ewm.controller.params.EventUpdateParams;
+import ru.practicum.ewm.controller.params.search.EventSearchParams;
 import ru.practicum.ewm.dto.event.EventFullDto;
 import ru.practicum.ewm.dto.event.EventShortDto;
 import ru.practicum.ewm.dto.event.NewEventDto;
@@ -12,10 +14,11 @@ public interface EventService {
 
     EventFullDto create(long userId, NewEventDto newEventDto);
 
-    List<EventShortDto> getAll(long userId, PrivateEventGetAllParams params);
+    EventFullDto getById(EventGetByIdParams params, HitDto hitDto);
 
-    EventFullDto getById(long userId, long eventId);
+    EventFullDto update(long eventId, EventUpdateParams updateParams);
 
-    EventFullDto update(long userId, PrivateEventUpdateParams updateParams);
+    List<EventShortDto> getAllByInitiatorOrPublic(EventSearchParams searchParams, HitDto hitDto);
 
+    List<EventFullDto> getAllByAdmin(EventSearchParams searchParams);
 }

@@ -1,25 +1,29 @@
 package ru.practicum.ewm.dto.event;
 
-import jakarta.validation.constraints.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
+import ru.practicum.ewm.dto.event.annotation.FutureAfterTwoHours;
 import ru.practicum.ewm.entity.Location;
 
 import java.time.LocalDateTime;
 
 public record NewEventDto(
 
-        @NotNull @Min(20) @Max(2000)
+        @NotNull @Size(min = 20, max = 2000)
         String annotation,
 
         Long category,
 
-        @NotNull @Min(20) @Max(7000)
+        @NotNull @Size(min = 20, max = 7000)
         String description,
 
-        @NotNull @Future
-        LocalDateTime eventDate, //TODO Validation, DateTimePattern, customAnnotation
+        @NotNull @FutureAfterTwoHours @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        LocalDateTime eventDate,
 
         @NotNull
-        Location location, //TODO validation?
+        Location location,
 
         boolean paid,
 
@@ -28,7 +32,8 @@ public record NewEventDto(
 
         boolean requestModeration,
 
-        @NotNull @Min(3) @Max(120) String title
+        @NotNull @Size(min = 3, max = 120)
+        String title
 
 ) {
 }

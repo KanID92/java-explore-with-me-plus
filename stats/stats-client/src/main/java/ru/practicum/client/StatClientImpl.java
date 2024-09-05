@@ -1,4 +1,4 @@
-package ru.practicum;
+package ru.practicum.client;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -7,6 +7,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import ru.practicum.HitDto;
+import ru.practicum.HitStatDto;
 
 import java.util.Collections;
 import java.util.List;
@@ -20,7 +22,7 @@ public class StatClientImpl implements StatClient {
 
     RestClient restClient;
 
-    public StatClientImpl(@Value("${stats-server.url}") String statsServiceUri) {
+    public StatClientImpl(@Value("${stats-service.url}") String statsServiceUri) {
         restClient = RestClient.builder()
                 .baseUrl(statsServiceUri)
                 .build();

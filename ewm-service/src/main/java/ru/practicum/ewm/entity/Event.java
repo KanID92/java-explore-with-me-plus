@@ -26,7 +26,8 @@ public class Event {
     @JoinColumn(name = "CATEGORY_ID")
     private Category category;
 
-    //TODO ??? Long confirmedRequests нужно ли
+    @Transient
+    private Long confirmedRequests;
 
     @Column(name = "CREATED_ON")
     private LocalDateTime createOn;
@@ -37,7 +38,7 @@ public class Event {
     @Column(name = "EVENT_DATE")
     private LocalDateTime eventDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "LOCATION_ID")
     private Location location;
 
@@ -52,17 +53,19 @@ public class Event {
     private int participantLimit;
 
     @Column(name = "PUBLISHED_ON")
-    private LocalDateTime publishedOn; //TODO work??
+    private LocalDateTime publishedOn;
 
     @Column(name = "REQUEST_MODERATION")
     private boolean requestModeration;
 
-    @Column(name = "STATE") //TODO work??
+    @Column(name = "STATE")
+    @Enumerated(EnumType.STRING)
     private EventState state;
 
     @Column(name = "TITLE")
     private String title;
 
-    //TODO ??? Long views нужно ли
+    @Transient
+    Long views;
 
 }

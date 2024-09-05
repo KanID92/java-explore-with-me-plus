@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.ewm.dto.UserCreateDto;
-import ru.practicum.ewm.dto.UserDto;
+import ru.practicum.ewm.dto.user.UserCreateDto;
+import ru.practicum.ewm.dto.user.UserDto;
 import ru.practicum.ewm.service.UserService;
 
 import java.util.List;
@@ -42,8 +42,8 @@ public class AdminUserController {
             @RequestParam(defaultValue = "10") int size
     ) {
         log.info("==> GET. Getting all users by ids: {}, from: {}, size {}", ids, from, size);
-        UserGetAllParams userGetAllParams = new UserGetAllParams(ids, from, size);
-        List<UserDto> receivedUserDtoList = userService.getAll(userGetAllParams);
+        AdminUsersGetAllParams adminUsersGetAllParams = new AdminUsersGetAllParams(ids, from, size);
+        List<UserDto> receivedUserDtoList = userService.getAll(adminUsersGetAllParams);
         log.info("<== GET. User list with size: {}", receivedUserDtoList.size());
         return receivedUserDtoList;
     }

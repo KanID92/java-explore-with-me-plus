@@ -1,4 +1,7 @@
-package ru.practicum;
+package ru.practicum.client;
+
+import ru.practicum.HitDto;
+import ru.practicum.HitStatDto;
 
 import java.util.List;
 

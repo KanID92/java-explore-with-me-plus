@@ -53,10 +53,10 @@ public abstract class EventMapper {
     @Named("getAdminEventState")
     EventState getAdminEventState(UpdateEventAdminRequest updateEventAdminRequest) {
         switch (updateEventAdminRequest.stateAction()) {
-            case StateAction.PUBLISH_EVENT -> {
+            case PUBLISH_EVENT -> {
                 return EventState.PUBLISHED;
             }
-            case StateAction.REJECT_EVENT -> {
+            case REJECT_EVENT -> {
                 return EventState.CANCELED;
             }
             default -> throw new ValidationException("EventMapper: Invalid state action");
@@ -66,10 +66,10 @@ public abstract class EventMapper {
     @Named("getPublishedOn")
     LocalDateTime getPublishedOn(UpdateEventAdminRequest updateEventAdminRequest) {
         switch (updateEventAdminRequest.stateAction()) {
-            case StateAction.PUBLISH_EVENT -> {
+            case PUBLISH_EVENT -> {
                 return getCurrentLocalDatetime();
             }
-            case StateAction.REJECT_EVENT -> {
+            case REJECT_EVENT -> {
                 return null;
             }
             default -> throw new ValidationException("EventMapper: Invalid state action");

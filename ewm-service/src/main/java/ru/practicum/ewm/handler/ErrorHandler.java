@@ -62,7 +62,7 @@ public class ErrorHandler {
         return new ApiError(
                 e.getStackTrace(),
                 e.getMessage(),
-                (e.getCause() != null)? e.getCause().toString() : "",
+                (e.getCause() != null) ? e.getCause().toString() : "",
                 status
         );
     }

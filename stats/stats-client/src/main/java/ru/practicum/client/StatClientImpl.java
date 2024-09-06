@@ -38,7 +38,7 @@ public class StatClientImpl implements StatClient {
                     .retrieve()
                     .body(HitDto.class);
         } catch (Exception e) {
-            log.error("Ошибка клиета {}", e.getMessage(), e);
+            log.error("Ошибка клиента {}", e.getMessage(), e);
         }
     }
 

@@ -18,18 +18,23 @@ public abstract class RequestMapper {
     @Mapping(target = "requester", expression = "java(request.getRequester().getId())")
     public abstract ParticipationRequestDto toParticipationRequestDto(Request request);
 
-    @Mapping(target = "createOn", expression = "java(getCurrentLocalDatetime)")
-    @Mapping(target = "status", expression = "java(getPendingEventState)")
-    public abstract Request toRequest (User user, Event event);
+    @Mapping(target = "created", expression = "java(getCurrentLocalDatetime())")
+    @Mapping(target = "status", expression = "java(getPendingRequestState())")
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "requester", source = "user")
+    @Mapping(target = "event", source = "event")
+    public abstract Request toRequest(User user, Event event);
 
     @Named("getCurrentLocalDatetime")
     LocalDateTime getCurrentLocalDatetime() {
-        return LocalDateTime.now();
+        return LocalDateTime.now().withNano(0);
     }
 
     @Named("getPendingEventState")
     RequestStatus getPendingRequestState() {
         return RequestStatus.PENDING;
     }
+
+
 
 }

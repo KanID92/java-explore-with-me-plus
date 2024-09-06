@@ -16,6 +16,7 @@ public class Request {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "REQUEST_ID")
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)

@@ -21,10 +21,7 @@ import ru.practicum.ewm.exception.AccessException;
 import ru.practicum.ewm.exception.ConflictException;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.mapper.EventMapper;
-import ru.practicum.ewm.repository.CategoryRepository;
-import ru.practicum.ewm.repository.EventRepository;
-import ru.practicum.ewm.repository.LocationRepository;
-import ru.practicum.ewm.repository.UserRepository;
+import ru.practicum.ewm.repository.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -42,6 +39,7 @@ public class EventServiceImpl implements EventService {
     private final EventMapper eventMapper;
     private final LocationRepository locationRepository;
     private final CategoryRepository categoryRepository;
+    private final RequestRepository requestRepository;
 
     private final StatClient statClient;
 
@@ -65,7 +63,7 @@ public class EventServiceImpl implements EventService {
 
         List<Event> eventListBySearch = new ArrayList<>();
 
-        if (searchParams.getPrivateSearchParams() != null) {
+        if (searchParams.getPrivateSearchParams() != null) { //private
             long initiatorId = searchParams.getPrivateSearchParams().getInitiatorId();
             User user = userRepository.findById(initiatorId)
                     .orElseThrow(() -> new NotFoundException("User with id " + initiatorId + " not found"));
@@ -73,7 +71,7 @@ public class EventServiceImpl implements EventService {
             eventListBySearch = eventRepository.findAllByInitiatorId(initiatorId, page);
         }
 
-        if (searchParams.getPublicSearchParams() != null) {
+        if (searchParams.getPublicSearchParams() != null) { //public
             Pageable page = PageRequest.of(searchParams.getFrom(), searchParams.getSize());
 
             BooleanExpression booleanExpression = event.isNotNull();
@@ -95,7 +93,7 @@ public class EventServiceImpl implements EventService {
             LocalDateTime rangeStart = publicSearchParams.getRangeStart();
             LocalDateTime rangeEnd = publicSearchParams.getRangeEnd();
 
-            if (rangeStart != null && rangeEnd  != null) { // наличие поиска дате события
+            if (rangeStart != null && rangeEnd != null) { // наличие поиска дате события
                 booleanExpression = booleanExpression.and(
                         event.eventDate.between(rangeStart, rangeEnd)
                 );
@@ -116,29 +114,31 @@ public class EventServiceImpl implements EventService {
             }
 
 //            if (!publicSearchParams.getOnlyAvailable()) { //TODO after Requests
-//                booleanExpression = booleanExpression.and(event.confirmedRequests.loe(event.participantLimit));
+//                requestRepository.countByStatusAndEventId(eve)
+//                booleanExpression = booleanExpression.and(reques.loe(event.participantLimit));
 //            }
 
             eventListBySearch = eventRepository.findAll(booleanExpression, page).stream().toList();
 
-        }
+            statClient.saveHit(hitDto);
 
-        statClient.saveHit(hitDto);
 
-        for (Event event : eventListBySearch) {
-            List<HitStatDto> hitStatDtoList = statClient.getStats(
-                    searchParams.getPublicSearchParams()
-                            .getRangeStart().format(dateTimeFormatter),
-                    searchParams.getPublicSearchParams()
-                            .getRangeEnd().format(dateTimeFormatter),
-                    List.of("/event/" + event.getId()),
-                            false);
-            Long view = 0L;
-            for (HitStatDto hitStatDto : hitStatDtoList) {
-                view += hitStatDto.getHits();
+            for (Event event : eventListBySearch) {
+                List<HitStatDto> hitStatDtoList = statClient.getStats(
+                        searchParams.getPublicSearchParams()
+                                .getRangeStart().format(dateTimeFormatter),
+                        searchParams.getPublicSearchParams()
+                                .getRangeEnd().format(dateTimeFormatter),
+                        List.of("/event/" + event.getId()),
+                        false);
+                Long view = 0L;
+                for (HitStatDto hitStatDto : hitStatDtoList) {
+                    view += hitStatDto.getHits();
+                }
+                event.setViews(view);
+                event.setConfirmedRequests(
+                        requestRepository.countByStatusAndEventId(RequestStatus.CONFIRMED, event.getId()));
             }
-            event.setViews(view);
-            event.setConfirmedRequests(0L); //TODO after Requests
         }
 
         return eventListBySearch.stream()
@@ -218,7 +218,8 @@ public class EventServiceImpl implements EventService {
                 view += hitStatDto.getHits();
             }
             receivedEvent.setViews(view);
-            receivedEvent.setConfirmedRequests(0L); //TODO after Requests
+            receivedEvent.setConfirmedRequests(
+                    requestRepository.countByStatusAndEventId(RequestStatus.CONFIRMED, receivedEvent.getId()));
         }
         return eventMapper.eventToEventFullDto(receivedEvent);
     }

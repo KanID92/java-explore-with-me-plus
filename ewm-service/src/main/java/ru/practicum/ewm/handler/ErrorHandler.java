@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.ewm.exception.AccessException;
+import ru.practicum.ewm.exception.NotFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -27,6 +28,13 @@ public class ErrorHandler {
     public ApiError handleValidationException(final ConstraintViolationException e) {
         log.warn("Conflict", e);
         return createApiError(e, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiError handleValidationException(final NotFoundException e) {
+        log.warn("NOT FOUND", e);
+        return createApiError(e, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler({DataAccessException.class})
@@ -54,10 +62,8 @@ public class ErrorHandler {
         return new ApiError(
                 e.getStackTrace(),
                 e.getMessage(),
-                e.getCause().toString(),
+                (e.getCause() != null) ? e.getCause().toString() : "",
                 status
         );
     }
-
-
 }

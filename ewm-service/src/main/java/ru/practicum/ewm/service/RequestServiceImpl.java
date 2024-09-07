@@ -90,7 +90,7 @@ public class RequestServiceImpl implements RequestService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
 
-        if (event.getInitiator().getId() != user.getId()) {
+        if (event.getInitiator().getId().equals(user.getId())) {
             throw new AccessException("User with id " + userId + " is not own event");
         }
 
@@ -109,7 +109,7 @@ public class RequestServiceImpl implements RequestService {
         Event event = eventRepository.findById(params.eventId()) //Проверка наличия события
                 .orElseThrow(() -> new NotFoundException("Event with id " + params.eventId() + " not found"));
 
-        if (event.getInitiator().getId() != user.getId()) {
+        if (event.getInitiator().getId().equals(user.getId())) {
             throw new AccessException("User with id " + params.userId() + " is not own event");
         }
 

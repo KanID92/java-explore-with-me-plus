@@ -79,7 +79,7 @@ public class EventServiceImpl implements EventService {
 
             PublicSearchParams publicSearchParams = searchParams.getPublicSearchParams();
 
-            if (!publicSearchParams.getText().isBlank()) { //наличие поиска по тексту
+            if (publicSearchParams.getText() != null) { //наличие поиска по тексту
                 booleanExpression = booleanExpression.andAnyOf(
                         event.annotation.likeIgnoreCase(publicSearchParams.getText()),
                         event.description.likeIgnoreCase(publicSearchParams.getText())
@@ -87,6 +87,11 @@ public class EventServiceImpl implements EventService {
             }
 
             if (publicSearchParams.getCategories() != null) { // наличие поиска по категориям
+                booleanExpression = booleanExpression.and(
+                        event.category.id.in((publicSearchParams.getCategories())));
+            }
+
+            if (publicSearchParams.getPaid() != null) { // наличие поиска по категориям
                 booleanExpression = booleanExpression.and(
                         event.paid.eq(publicSearchParams.getPaid()));
             }

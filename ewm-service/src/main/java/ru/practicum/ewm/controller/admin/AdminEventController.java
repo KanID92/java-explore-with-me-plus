@@ -1,5 +1,6 @@
 package ru.practicum.ewm.controller.admin;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -26,7 +27,7 @@ public class AdminEventController {
     @PatchMapping("{eventId}")
     public EventFullDto update(
             @PathVariable long eventId,
-            @RequestBody UpdateEventAdminRequest updateEventAdminRequest) {
+            @RequestBody @Valid UpdateEventAdminRequest updateEventAdminRequest) {
         log.info("==> PATCH /admin/events/{}; Update event by admin: {}", eventId, updateEventAdminRequest);
         EventFullDto updatedEvent = eventService.update(
                 eventId, new EventUpdateParams(null, null, updateEventAdminRequest));

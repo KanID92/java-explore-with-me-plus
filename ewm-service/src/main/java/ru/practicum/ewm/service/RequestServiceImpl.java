@@ -133,11 +133,11 @@ public class RequestServiceImpl implements RequestService {
             if (event.isRequestModeration()) { // Проверка необходимости модерации
                 String status = params.eventRequestStatusUpdateRequest().status().toString();
                 System.out.println("Cтатус для обновления: " + status);
-                requestRepository.updateStatus(//TODO обновление статуса реквеста по входящему dto
+                requestRepository.updateStatus(
                         status, request.getId());
                 Request modifiedRequest = requestRepository.findById(request.getId())
                         .orElseThrow(() -> new NotFoundException("Request with id " + request.getId() + " not found"));
-                System.out.println("Обновленный" + modifiedRequest.getId() + " " + modifiedRequest.getStatus());
+                System.out.println("Обновленный " + modifiedRequest.getId() + " " + modifiedRequest.getStatus());
                 if (params.eventRequestStatusUpdateRequest().status() == RequestStatus.CONFIRMED) { //увеличение счетчика подтвержденных событий, в случае потверждения
                     confirmedRequestsCount++;
                 }

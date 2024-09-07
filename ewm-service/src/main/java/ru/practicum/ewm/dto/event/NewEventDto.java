@@ -9,6 +9,7 @@ import ru.practicum.ewm.dto.event.annotation.FutureAfterTwoHours;
 import ru.practicum.ewm.entity.Location;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 public record NewEventDto(
 
@@ -26,15 +27,38 @@ public record NewEventDto(
         @NotNull
         Location location,
 
-        boolean paid,
+        Boolean paid,
 
-        @NotNull @PositiveOrZero
+        @PositiveOrZero
         Integer participantLimit,
 
-        boolean requestModeration,
+        Boolean requestModeration,
 
         @NotNull @Size(min = 3, max = 120)
         String title
-
 ) {
+        public NewEventDto(
+                String annotation,
+                Long category,
+                String description,
+                LocalDateTime eventDate,
+                Location location,
+                Boolean paid,
+                Integer participantLimit,
+                Boolean requestModeration,
+                String title) {
+
+                this.annotation = annotation;
+                this.category = category;
+                this.description = description;
+                this.eventDate = eventDate;
+                this.location = location;
+                this.paid = Objects.requireNonNullElse(paid, false);
+                this.participantLimit = Objects.requireNonNullElse(participantLimit, 0);
+                this.requestModeration = Objects.requireNonNullElse(requestModeration, true);
+                this.title = title;
+
+        }
+
+
 }

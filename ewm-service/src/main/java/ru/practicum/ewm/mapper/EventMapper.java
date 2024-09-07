@@ -52,15 +52,17 @@ public abstract class EventMapper {
 
     @Named("getAdminEventState")
     EventState getAdminEventState(UpdateEventAdminRequest updateEventAdminRequest) {
-        switch (updateEventAdminRequest.stateAction()) {
-            case PUBLISH_EVENT -> {
-                return EventState.PUBLISHED;
+        if (updateEventAdminRequest.stateAction() != null) {
+            switch (updateEventAdminRequest.stateAction()) {
+                case PUBLISH_EVENT -> {
+                    return EventState.PUBLISHED;
+                }
+                case REJECT_EVENT -> {
+                    return EventState.CANCELED;
+                }
+                default -> throw new ValidationException("EventMapper: Invalid state action");
             }
-            case REJECT_EVENT -> {
-                return EventState.CANCELED;
-            }
-            default -> throw new ValidationException("EventMapper: Invalid state action");
-        }
+        } else return EventState.PENDING;
     }
 
     @Named("getPublishedOn")

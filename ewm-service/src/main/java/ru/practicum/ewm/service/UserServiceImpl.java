@@ -33,8 +33,16 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public List<UserDto> getAll(AdminUsersGetAllParams adminUsersGetAllParams) {
-        List<User> userSearchList = userRepository.findAllByIdIn(
-                Arrays.asList(adminUsersGetAllParams.ids()), PageRequest.of(adminUsersGetAllParams.from(), adminUsersGetAllParams.size()));
+        List<User> userSearchList;
+        if (adminUsersGetAllParams.ids() != null) {
+            userSearchList = userRepository.findAllByIdIn(
+                    Arrays.asList(adminUsersGetAllParams.ids()), PageRequest.of(adminUsersGetAllParams.from(), adminUsersGetAllParams.size()));
+        } else {
+            userSearchList =
+                    userRepository.findAll(
+                            PageRequest.of(
+                                    adminUsersGetAllParams.from(), adminUsersGetAllParams.size())).stream().toList();
+        }
 
         return userSearchList.stream()
                 .map(userMapper::userToUserDto)

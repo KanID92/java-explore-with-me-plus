@@ -150,6 +150,7 @@ public class RequestServiceImpl implements RequestService {
         List<ParticipationRequestDto> confirmedRequestsDtoList =
                 requestRepository.findAllByStatus(RequestStatus.CONFIRMED)
                         .stream()
+                        .filter(request -> request.getEvent().getId() == event.getId())
                         .map(requestMapper::toParticipationRequestDto)
                         .toList();
         List<Request> rejectedRequests = requestRepository.findAllByStatus(RequestStatus.REJECTED);
@@ -160,12 +161,10 @@ public class RequestServiceImpl implements RequestService {
         List<ParticipationRequestDto> rejectedRequestsDtoList =
                 rejectedRequests
                         .stream()
+                        .filter(request -> request.getEvent().getId() == event.getId())
                         .map(requestMapper::toParticipationRequestDto)
                         .toList();
 
         return new EventRequestStatusUpdateResult(confirmedRequestsDtoList, rejectedRequestsDtoList);
-
     }
-
-
 }

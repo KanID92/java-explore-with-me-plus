@@ -220,7 +220,7 @@ public class EventServiceImpl implements EventService {
             statClient.saveHit(hitDto);
 
             List<HitStatDto> hitStatDtoList = statClient.getStats(
-                        null, null, List.of("/event/" + params.eventId()), false
+                        null, null, List.of("/events/" + params.eventId()), true
             );
             Long view = 0L;
             for (HitStatDto hitStatDto : hitStatDtoList) {

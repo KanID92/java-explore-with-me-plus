@@ -89,7 +89,7 @@ public class PublicEventController {
                 "ewm-service",
                 httpRequest.getRequestURI(),
                 httpRequest.getRemoteAddr(),
-                LocalDateTime.now().toString());
+                LocalDateTime.now().format(dateTimeFormatter));
         EventFullDto eventFullDto = eventService.getById(new EventGetByIdParams(null, id), hitDto);
         if (eventFullDto.state() != EventState.PUBLISHED) {
             throw new NotFoundException("Нет опубликованных событий с id " + id);

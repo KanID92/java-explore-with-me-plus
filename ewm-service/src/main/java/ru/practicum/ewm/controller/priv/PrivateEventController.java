@@ -3,7 +3,6 @@ package ru.practicum.ewm.controller.priv;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.controller.params.EventGetByIdParams;
@@ -14,7 +13,11 @@ import ru.practicum.ewm.dto.event.EventFullDto;
 import ru.practicum.ewm.dto.event.EventShortDto;
 import ru.practicum.ewm.dto.event.NewEventDto;
 import ru.practicum.ewm.dto.event.UpdateEventUserRequest;
+import ru.practicum.ewm.dto.request.EventRequestStatusUpdateRequest;
+import ru.practicum.ewm.dto.request.EventRequestStatusUpdateResult;
+import ru.practicum.ewm.dto.request.ParticipationRequestDto;
 import ru.practicum.ewm.service.EventService;
+import ru.practicum.ewm.service.RequestService;
 
 import java.util.List;
 
@@ -25,6 +28,7 @@ import java.util.List;
 public class PrivateEventController {
 
     private final EventService eventService;
+    private final RequestService requestService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -40,8 +44,8 @@ public class PrivateEventController {
     @GetMapping
     public List<EventShortDto> getAll(
             @PathVariable Long userId,
-            @RequestParam @DefaultValue("0") int from,
-            @RequestParam @DefaultValue("10") int size) {
+            @RequestParam(required = false, defaultValue = "0") Integer from,
+            @RequestParam(required = false, defaultValue = "10") Integer size) {
         log.info("==> GET. /users/{userId}/events " +
                 "Getting all user id {} event: from {}, size {}", userId, from, size);
         EventSearchParams searchParams = new EventSearchParams();
@@ -50,7 +54,7 @@ public class PrivateEventController {
         searchParams.setSize(size);
         List<EventShortDto> receivedEventsDtoList =
                 eventService.getAllByInitiatorOrPublic(searchParams, null);
-        //TODO Statistic service
+
         log.info("<== GET. /users/{userId}/events " +
                 "Returning all user id {} event: size {}", userId, receivedEventsDtoList.size());
         return receivedEventsDtoList;
@@ -61,7 +65,6 @@ public class PrivateEventController {
         log.info("==> GET. /users/{userId}/events/{eventId} " +
                 "Getting event with id: {}, by user with id: {}", eventId, userId);
         EventFullDto receivedEventDto = eventService.getById(new EventGetByIdParams(userId, eventId), null);
-        //TODO Statistic service
         log.info("<== GET. /users/{userId}/events/{eventId} " +
                 "Returning event with id: {}", receivedEventDto.id());
         return receivedEventDto;
@@ -79,7 +82,38 @@ public class PrivateEventController {
                 "Returning updated event with id: {}, by user with id: {}. Updating: {}",
                 eventId, userId, receivedEventDto);
         return receivedEventDto;
+    }
 
+    @GetMapping("/{eventId}/requests")
+    public List<ParticipationRequestDto> getAllRequestsForOwnEvent(
+            @PathVariable long userId,
+            @PathVariable long eventId) {
+        log.info("==> GET. /users/{userId}/events/{eventId}/requests " +
+                "Getting requests for own event with id: {}, of user with id: {}", eventId, userId);
+
+        List<ParticipationRequestDto> receivedRequestsDtoList
+                = requestService.getAllForOwnEvent(userId, eventId);
+
+        log.info("<== GET. /users/{userId}/events/{eventId}/requests " +
+                "Returning requests for own event with id: {} of user with id: {}", eventId, userId);
+
+        return receivedRequestsDtoList;
+    }
+
+    @PatchMapping("/{eventId}/requests")
+    public EventRequestStatusUpdateResult updateRequestStatus(
+            @PathVariable long userId,
+            @PathVariable long eventId,
+            @RequestBody @Valid EventRequestStatusUpdateRequest updateRequestStatusDto) {
+
+        log.info("==> PATCH. /users/{userId}/events/{eventId}/requests " +
+                "Changing request status for own event with id: {} of user with id: {}", eventId, userId);
+        log.info("EventRequestStatusUpdateRequest. Deserialized body: {}", updateRequestStatusDto);
+        EventRequestStatusUpdateResult eventUpdateResult =
+                requestService.updateStatus(new PrivateUpdateRequestParams(userId, eventId, updateRequestStatusDto));
+        log.info("<== PATCH. /users/{userId}/events/{eventId}/requests " +
+                "Changed request status for own event with id: {} of user with id: {}", eventId, userId);
+        return eventUpdateResult;
     }
 
 

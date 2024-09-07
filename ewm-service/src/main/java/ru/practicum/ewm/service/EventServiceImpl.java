@@ -19,6 +19,7 @@ import ru.practicum.ewm.dto.event.NewEventDto;
 import ru.practicum.ewm.entity.*;
 import ru.practicum.ewm.exception.AccessException;
 import ru.practicum.ewm.exception.ConflictException;
+import ru.practicum.ewm.exception.IncorrectValueException;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.mapper.EventMapper;
 import ru.practicum.ewm.repository.*;
@@ -101,16 +102,20 @@ public class EventServiceImpl implements EventService {
                 booleanExpression = booleanExpression.and(
                         event.eventDate.after(rangeStart)
                 );
+                rangeEnd = rangeStart.plusYears(100);
             } else if (publicSearchParams.getRangeEnd() != null) {
                 booleanExpression = booleanExpression.and(
                         event.eventDate.before(rangeEnd)
                 );
+                rangeStart = LocalDateTime.parse(LocalDateTime.now().format(dateTimeFormatter), dateTimeFormatter);
             }
 
             if (rangeEnd == null && rangeStart == null) {
                 booleanExpression = booleanExpression.and(
                         event.eventDate.after(LocalDateTime.now())
                 );
+                rangeStart = LocalDateTime.parse(LocalDateTime.now().format(dateTimeFormatter), dateTimeFormatter);
+                rangeEnd = rangeStart.plusYears(100);
             }
 
 //            if (!publicSearchParams.getOnlyAvailable()) { //TODO after Requests
@@ -125,10 +130,8 @@ public class EventServiceImpl implements EventService {
 
             for (Event event : eventListBySearch) {
                 List<HitStatDto> hitStatDtoList = statClient.getStats(
-                        searchParams.getPublicSearchParams()
-                                .getRangeStart().format(dateTimeFormatter),
-                        searchParams.getPublicSearchParams()
-                                .getRangeEnd().format(dateTimeFormatter),
+                        rangeStart.format(dateTimeFormatter),
+                        rangeEnd.format(dateTimeFormatter),
                         List.of("/event/" + event.getId()),
                         false);
                 Long view = 0L;
@@ -187,8 +190,9 @@ public class EventServiceImpl implements EventService {
 
 
         return eventRepository.findAll(booleanExpression, page)
-                .stream().toList()
                 .stream()
+                .peek(event -> event.setConfirmedRequests(
+                        requestRepository.countByStatusAndEventId(RequestStatus.CONFIRMED, event.getId())))
                 .map(eventMapper::eventToEventFullDto)
                 .toList();
     }
@@ -289,7 +293,7 @@ public class EventServiceImpl implements EventService {
 
             if (updateParams.updateEventAdminRequest().eventDate() != null &&
                     updateParams.updateEventAdminRequest().eventDate().isBefore(LocalDateTime.now().plusHours(1))) {
-                throw new ConflictException(
+                throw new IncorrectValueException(
                         "Admin. Cannot update event: event date must be not earlier then after 2 hours ");
             }
 

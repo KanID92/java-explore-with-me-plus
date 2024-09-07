@@ -12,9 +12,12 @@ import ru.practicum.ewm.controller.params.search.EventSearchParams;
 import ru.practicum.ewm.controller.params.search.PublicSearchParams;
 import ru.practicum.ewm.dto.event.EventFullDto;
 import ru.practicum.ewm.dto.event.EventShortDto;
+import ru.practicum.ewm.entity.EventState;
+import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.service.EventService;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Slf4j
@@ -24,6 +27,8 @@ import java.util.List;
 public class PublicEventController {
 
     private final EventService eventService;
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
 
     @GetMapping
     public List<EventShortDto> getAll(
@@ -45,6 +50,7 @@ public class PublicEventController {
         publicSearchParams.setText(text);
         publicSearchParams.setCategories(categories);
         publicSearchParams.setPaid(paid);
+
         publicSearchParams.setRangeStart(rangeStart);
         publicSearchParams.setRangeEnd(rangeEnd);
 
@@ -57,7 +63,7 @@ public class PublicEventController {
                 "ewm-service",
                 httpRequest.getRequestURI(),
                 httpRequest.getRemoteAddr(),
-                LocalDateTime.now().toString());
+                LocalDateTime.now().format(dateTimeFormatter));
 
         List<EventShortDto> eventShortDtoList = eventService.getAllByInitiatorOrPublic(eventSearchParams, hitDto);
         log.info("<== GET /events Returning public searching events. List size: {}",
@@ -80,6 +86,9 @@ public class PublicEventController {
                 httpRequest.getRemoteAddr(),
                 LocalDateTime.now().toString());
         EventFullDto eventFullDto = eventService.getById(new EventGetByIdParams(null, id), hitDto);
+        if (eventFullDto.state() != EventState.PUBLISHED) {
+            throw new NotFoundException("Нет опубликованных событий с id " + id);
+        }
         log.info("<== GET /events/{}  Public getById", id);
         return eventFullDto;
     }

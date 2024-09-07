@@ -27,6 +27,8 @@ import java.util.List;
 public class PublicEventController {
 
     private final EventService eventService;
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
 
     @GetMapping
     public List<EventShortDto> getAll(
@@ -61,7 +63,7 @@ public class PublicEventController {
                 "ewm-service",
                 httpRequest.getRequestURI(),
                 httpRequest.getRemoteAddr(),
-                LocalDateTime.now().toString());
+                LocalDateTime.now().format(dateTimeFormatter));
 
         List<EventShortDto> eventShortDtoList = eventService.getAllByInitiatorOrPublic(eventSearchParams, hitDto);
         log.info("<== GET /events Returning public searching events. List size: {}",

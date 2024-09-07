@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.ewm.exception.AccessException;
+import ru.practicum.ewm.exception.ConflictException;
+import ru.practicum.ewm.exception.IncorrectValueException;
 import ru.practicum.ewm.exception.NotFoundException;
 
 @Slf4j
@@ -45,6 +47,13 @@ public class ErrorHandler {
         return createApiError(e, HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler({ConflictException.class})
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleIllegalArgumentException(final ConflictException e) {
+        log.warn("Conflict", e);
+        return createApiError(e, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ApiError handleAccessException(final AccessException e) {
@@ -62,6 +71,13 @@ public class ErrorHandler {
     @ExceptionHandler({MissingServletRequestParameterException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleException(final MissingServletRequestParameterException e) {
+        log.warn("Error", e);
+        return createApiError(e, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({IncorrectValueException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleException(final IncorrectValueException e) {
         log.warn("Error", e);
         return createApiError(e, HttpStatus.BAD_REQUEST);
     }

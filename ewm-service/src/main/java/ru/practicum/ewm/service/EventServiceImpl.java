@@ -19,6 +19,7 @@ import ru.practicum.ewm.dto.event.NewEventDto;
 import ru.practicum.ewm.entity.*;
 import ru.practicum.ewm.exception.AccessException;
 import ru.practicum.ewm.exception.ConflictException;
+import ru.practicum.ewm.exception.IncorrectValueException;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.mapper.EventMapper;
 import ru.practicum.ewm.repository.*;
@@ -292,7 +293,7 @@ public class EventServiceImpl implements EventService {
 
             if (updateParams.updateEventAdminRequest().eventDate() != null &&
                     updateParams.updateEventAdminRequest().eventDate().isBefore(LocalDateTime.now().plusHours(1))) {
-                throw new ConflictException(
+                throw new IncorrectValueException(
                         "Admin. Cannot update event: event date must be not earlier then after 2 hours ");
             }
 

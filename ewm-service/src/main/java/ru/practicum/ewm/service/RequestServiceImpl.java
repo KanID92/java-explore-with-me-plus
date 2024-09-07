@@ -45,13 +45,13 @@ public class RequestServiceImpl implements RequestService {
         if (!event.getState().equals(EventState.PUBLISHED)) {
             throw new ConflictException("Event is not published");
         }
-        if (event.getParticipantLimit() == confirmedRequests) {
+        if (event.getParticipantLimit() != 0 && event.getParticipantLimit() == confirmedRequests) {
             throw new ConflictException("There is no empty place for this event");
         }
 
         Request creatingRequest = requestMapper.toRequest(user, event);
 
-        if (!event.isRequestModeration()) {
+        if (!event.isRequestModeration() || event.getParticipantLimit() == 0) {
             creatingRequest.setStatus(RequestStatus.CONFIRMED);
         }
 

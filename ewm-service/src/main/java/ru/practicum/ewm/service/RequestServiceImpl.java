@@ -18,6 +18,7 @@ import ru.practicum.ewm.repository.RequestRepository;
 import ru.practicum.ewm.repository.UserRepository;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -90,7 +91,7 @@ public class RequestServiceImpl implements RequestService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
 
-        if (event.getInitiator().getId().equals(user.getId())) {
+        if (!Objects.equals(event.getInitiator().getId(), user.getId())) {
             throw new AccessException("User with id " + userId + " is not own event");
         }
 
@@ -109,7 +110,7 @@ public class RequestServiceImpl implements RequestService {
         Event event = eventRepository.findById(params.eventId()) //Проверка наличия события
                 .orElseThrow(() -> new NotFoundException("Event with id " + params.eventId() + " not found"));
 
-        if (event.getInitiator().getId().equals(user.getId())) {
+        if (!Objects.equals(event.getInitiator().getId(), user.getId())) {
             throw new AccessException("User with id " + params.userId() + " is not own event");
         }
 

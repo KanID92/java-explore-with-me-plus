@@ -19,7 +19,7 @@ public abstract class RequestMapper {
     public abstract ParticipationRequestDto toParticipationRequestDto(Request request);
 
     @Mapping(target = "created", expression = "java(getCurrentLocalDatetime())")
-    @Mapping(target = "status", expression = "java(getPendingRequestState())")
+    @Mapping(target = "status", expression = "java(setRequestStatus(event))")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "requester", source = "user")
     @Mapping(target = "event", source = "event")
@@ -31,7 +31,10 @@ public abstract class RequestMapper {
     }
 
     @Named("getPendingEventState")
-    RequestStatus getPendingRequestState() {
+    RequestStatus setRequestStatus(Event event) {
+        if (!event.isRequestModeration() || event.getParticipantLimit() == 0) {
+            return RequestStatus.CONFIRMED;
+        }
         return RequestStatus.PENDING;
     }
 

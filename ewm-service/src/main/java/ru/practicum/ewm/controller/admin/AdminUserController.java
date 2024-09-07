@@ -1,5 +1,6 @@
 package ru.practicum.ewm.controller.admin;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,7 +21,7 @@ public class AdminUserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto add(@RequestBody UserCreateDto userCreateDto) {
+    public UserDto add(@RequestBody @Valid UserCreateDto userCreateDto) {
         log.info("==> POST. Adding new User: {}", userCreateDto);
         UserDto receivedUserDto = userService.add(userCreateDto);
         log.info("<== POST. User added: {}", receivedUserDto);

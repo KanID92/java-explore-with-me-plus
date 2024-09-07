@@ -65,14 +65,18 @@ public abstract class EventMapper {
 
     @Named("getPublishedOn")
     LocalDateTime getPublishedOn(UpdateEventAdminRequest updateEventAdminRequest) {
-        switch (updateEventAdminRequest.stateAction()) {
-            case PUBLISH_EVENT -> {
-                return getCurrentLocalDatetime();
+        if (updateEventAdminRequest.stateAction() != null) {
+            switch (updateEventAdminRequest.stateAction()) {
+                case PUBLISH_EVENT -> {
+                    return getCurrentLocalDatetime();
+                }
+                case REJECT_EVENT -> {
+                    return null;
+                }
+                default -> throw new ValidationException("EventMapper: Invalid state action");
             }
-            case REJECT_EVENT -> {
-                return null;
-            }
-            default -> throw new ValidationException("EventMapper: Invalid state action");
+        } else {
+            return null;
         }
     }
 

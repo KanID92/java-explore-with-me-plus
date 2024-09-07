@@ -125,7 +125,7 @@ public class EventServiceImpl implements EventService {
 
             eventListBySearch = eventRepository.findAll(booleanExpression, page).stream().toList();
 
-            statClient.saveHit(hitDto);
+            statClient.saveHit(hitDto); //TODO перенести?
 
 
             for (Event event : eventListBySearch) {
@@ -263,6 +263,7 @@ public class EventServiceImpl implements EventService {
             }
 
             StateAction stateAction = updateParams.updateEventUserRequest().stateAction();
+            System.out.println("State action received from params: " + stateAction);
 
             if (stateAction != null) {
                 switch (stateAction) {
@@ -274,7 +275,9 @@ public class EventServiceImpl implements EventService {
                 }
             }
 
+            System.out.println("Private. Событие до мапинга: " + event);
             eventMapper.updateEventUserRequestToEvent(event, updateParams.updateEventUserRequest());
+            System.out.println("Private. Событие после мапинга для сохранения: " + event);
 
         }
 
@@ -296,13 +299,16 @@ public class EventServiceImpl implements EventService {
                 throw new IncorrectValueException(
                         "Admin. Cannot update event: event date must be not earlier then after 2 hours ");
             }
-
+            System.out.println("Admin. Событие до мапинга: " + event.getId() + "; " + event.getState());
             eventMapper.updateEventAdminRequestToEvent(event, updateParams.updateEventAdminRequest());
+            System.out.println("Admin. Событие после мапинга для сохранения: " + event.getId() + "; " + event.getState());
 
         }
         event.setId(eventId);
 
         updatedEvent = eventRepository.save(event);
+
+        System.out.println("Событие возвращенное из базы: "  + event.getId() + "; " + event.getState());
 
         return eventMapper.eventToEventFullDto(updatedEvent);
     }

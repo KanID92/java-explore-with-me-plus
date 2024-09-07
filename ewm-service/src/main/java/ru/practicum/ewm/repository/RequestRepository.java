@@ -14,15 +14,15 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
 
     List<Request> getAllByEventId(long eventId);
 
-    List<Request> getAllByIdInAndEventId(List<Long> ids, long eventId);
+    List<Request> findAllByIdInAndEventId(List<Long> ids, long eventId);
 
     long countByStatusAndEventId(RequestStatus status, long eventId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE REQUESTS SET STATUS = ?1 WHERE REQUEST_ID = ?2", nativeQuery = true)
     void updateStatus(String status, long requestId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE REQUESTS SET STATUS = 'CANCELED' WHERE EVENT_ID = ?1 AND STATUS = 'PENDING'", nativeQuery = true)
     void cancelNewRequestsStatus(long eventId);
 

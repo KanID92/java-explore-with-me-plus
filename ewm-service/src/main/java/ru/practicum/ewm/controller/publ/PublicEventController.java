@@ -13,6 +13,7 @@ import ru.practicum.ewm.controller.params.search.PublicSearchParams;
 import ru.practicum.ewm.dto.event.EventFullDto;
 import ru.practicum.ewm.dto.event.EventShortDto;
 import ru.practicum.ewm.entity.EventState;
+import ru.practicum.ewm.exception.IncorrectValueException;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.service.EventService;
 
@@ -45,6 +46,10 @@ public class PublicEventController {
                         "text {}, categories: {}, paid {}, rangeStart: {}, rangeEnd: {}, available {}, from: {}, size: {}",
                 text, categories, paid, rangeStart, rangeEnd, onlyAvailable, from, size);
 
+        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
+            throw new IncorrectValueException("rangeStart of event can't be after rangeEnd");
+        }
+
         EventSearchParams eventSearchParams = new EventSearchParams();
         PublicSearchParams publicSearchParams = new PublicSearchParams();
         publicSearchParams.setText(text);
@@ -59,7 +64,7 @@ public class PublicEventController {
         eventSearchParams.setSize(size);
 
         HitDto hitDto = new HitDto(
-                null, // не нужно во входящем DTO
+                null,
                 "ewm-service",
                 httpRequest.getRequestURI(),
                 httpRequest.getRemoteAddr(),
@@ -80,7 +85,7 @@ public class PublicEventController {
     ) {
         log.info("==> GET /events/{}  Public getById", id);
         HitDto hitDto = new HitDto(
-                null, // не нужно во входящем DTO
+                null,
                 "ewm-service",
                 httpRequest.getRequestURI(),
                 httpRequest.getRemoteAddr(),

@@ -104,40 +104,44 @@ public class RequestServiceImpl implements RequestService {
     @Override
     @Transactional
     public EventRequestStatusUpdateResult updateStatus(PrivateUpdateRequestParams params) {
-        User user = userRepository.findById(params.userId())
+        User user = userRepository.findById(params.userId()) //Проверка наличия пользователя
                 .orElseThrow(() -> new NotFoundException("User with id " + params.userId() + " not found"));
-        Event event = eventRepository.findById(params.eventId())
+        Event event = eventRepository.findById(params.eventId()) //Проверка наличия события
                 .orElseThrow(() -> new NotFoundException("Event with id " + params.eventId() + " not found"));
-
 
         if (event.getInitiator().getId() != user.getId()) {
             throw new AccessException("User with id " + params.userId() + " is not own event");
         }
 
-        long confirmedRequestsCount =
-                requestRepository.countByStatusAndEventId(RequestStatus.CONFIRMED, params.eventId());
-
-        List<Request> requestListOfEvent =
-                requestRepository.getAllByIdInAndEventId(
+        List<Request> requestListOfEvent = //Получение всех изменяемых реквестов события
+                requestRepository.findAllByIdInAndEventId(
                         params.eventRequestStatusUpdateRequest().requestIds(), params.eventId());
+
+        long confirmedRequestsCount = //Получение количества подвержденных запросов события.
+                requestRepository.countByStatusAndEventId(RequestStatus.CONFIRMED, params.eventId());
 
 
         for (Request request : requestListOfEvent) {
-            if (request.getStatus() != RequestStatus.PENDING) {
+            if (request.getStatus() != RequestStatus.PENDING) { // Проверка что все реквесты для изменения - в режиме подтверждения
                 throw new ConflictException("Request status is not PENDING");
             }
 
-            if (confirmedRequestsCount >= event.getParticipantLimit()) {
+            if (confirmedRequestsCount >= event.getParticipantLimit()) { // Проверка что количество подтвержденных реквестов не больше лимита
                 throw new ConflictException("Participant limit exceeded");
             }
 
-            if (event.isRequestModeration()) {
-                requestRepository.updateStatus(
-                        params.eventRequestStatusUpdateRequest().status().toString(), request.getId());
-                if (params.eventRequestStatusUpdateRequest().status() == RequestStatus.CONFIRMED) {
+            if (event.isRequestModeration()) { // Проверка необходимости модерации
+                String status = params.eventRequestStatusUpdateRequest().status().toString();
+                System.out.println("Cтатус для обновления: " + status);
+                requestRepository.updateStatus(//TODO обновление статуса реквеста по входящему dto
+                        status, request.getId());
+                Request modifiedRequest = requestRepository.findById(request.getId())
+                        .orElseThrow(() -> new NotFoundException("Request with id " + request.getId() + " not found"));
+                System.out.println("Обновленный" + modifiedRequest.getId() + " " + modifiedRequest.getStatus());
+                if (params.eventRequestStatusUpdateRequest().status() == RequestStatus.CONFIRMED) { //увеличение счетчика подтвержденных событий, в случае потверждения
                     confirmedRequestsCount++;
                 }
-                if (confirmedRequestsCount >= event.getParticipantLimit()) {
+                if (confirmedRequestsCount >= event.getParticipantLimit()) { //проверка счетчика на превышение, отмена остальных реквестов
                     requestRepository.cancelNewRequestsStatus(event.getId());
                 }
             }
@@ -150,7 +154,7 @@ public class RequestServiceImpl implements RequestService {
                         .toList();
         List<Request> rejectedRequests = requestRepository.findAllByStatus(RequestStatus.REJECTED);
         for (Request request : rejectedRequests) {
-            System.out.println(request.getId() + "id, status: " + request.getStatus());
+            System.out.println(request.getId() + " id, status: " + request.getStatus());
         }
 
         List<ParticipationRequestDto> rejectedRequestsDtoList =

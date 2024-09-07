@@ -9,7 +9,10 @@ import ru.practicum.stats.entity.Hit;
 import ru.practicum.stats.repository.StatsRepository;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ru.practicum.stats.mapper.HitDtoMapper.dtoToHit;
@@ -37,7 +40,7 @@ public class StatsServiceImpl implements StatsService {
         } else {
             LocalDateTime localDateTimeStart = LocalDateTime.parse(start, formatter);
             LocalDateTime localDateTimeEnd = LocalDateTime.parse(end, formatter);
-            if(!localDateTimeStart.isBefore(localDateTimeEnd)) {
+            if (!localDateTimeStart.isBefore(localDateTimeEnd)) {
                 throw new IllegalArgumentException("start must be before end");
             }
             data = (uris == null || uris.isEmpty()) ? statsRepository.getStat(localDateTimeStart, localDateTimeEnd) :

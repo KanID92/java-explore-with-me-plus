@@ -12,9 +12,12 @@ import ru.practicum.ewm.controller.params.search.EventSearchParams;
 import ru.practicum.ewm.controller.params.search.PublicSearchParams;
 import ru.practicum.ewm.dto.event.EventFullDto;
 import ru.practicum.ewm.dto.event.EventShortDto;
+import ru.practicum.ewm.entity.EventState;
+import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.service.EventService;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Slf4j
@@ -45,6 +48,7 @@ public class PublicEventController {
         publicSearchParams.setText(text);
         publicSearchParams.setCategories(categories);
         publicSearchParams.setPaid(paid);
+
         publicSearchParams.setRangeStart(rangeStart);
         publicSearchParams.setRangeEnd(rangeEnd);
 
@@ -80,6 +84,9 @@ public class PublicEventController {
                 httpRequest.getRemoteAddr(),
                 LocalDateTime.now().toString());
         EventFullDto eventFullDto = eventService.getById(new EventGetByIdParams(null, id), hitDto);
+        if (eventFullDto.state() != EventState.PUBLISHED) {
+            throw new NotFoundException("Нет опубликованных событий с id " + id);
+        }
         log.info("<== GET /events/{}  Public getById", id);
         return eventFullDto;
     }

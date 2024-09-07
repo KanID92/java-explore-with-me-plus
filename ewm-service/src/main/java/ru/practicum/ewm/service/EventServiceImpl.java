@@ -101,16 +101,20 @@ public class EventServiceImpl implements EventService {
                 booleanExpression = booleanExpression.and(
                         event.eventDate.after(rangeStart)
                 );
+                rangeEnd = rangeStart.plusYears(100);
             } else if (publicSearchParams.getRangeEnd() != null) {
                 booleanExpression = booleanExpression.and(
                         event.eventDate.before(rangeEnd)
                 );
+                rangeStart = LocalDateTime.parse(LocalDateTime.now().format(dateTimeFormatter), dateTimeFormatter);
             }
 
             if (rangeEnd == null && rangeStart == null) {
                 booleanExpression = booleanExpression.and(
                         event.eventDate.after(LocalDateTime.now())
                 );
+                rangeStart = LocalDateTime.parse(LocalDateTime.now().format(dateTimeFormatter), dateTimeFormatter);
+                rangeEnd = rangeStart.plusYears(100);
             }
 
 //            if (!publicSearchParams.getOnlyAvailable()) { //TODO after Requests
@@ -125,10 +129,8 @@ public class EventServiceImpl implements EventService {
 
             for (Event event : eventListBySearch) {
                 List<HitStatDto> hitStatDtoList = statClient.getStats(
-                        searchParams.getPublicSearchParams()
-                                .getRangeStart().format(dateTimeFormatter),
-                        searchParams.getPublicSearchParams()
-                                .getRangeEnd().format(dateTimeFormatter),
+                        rangeStart.format(dateTimeFormatter),
+                        rangeEnd.format(dateTimeFormatter),
                         List.of("/event/" + event.getId()),
                         false);
                 Long view = 0L;
@@ -187,8 +189,9 @@ public class EventServiceImpl implements EventService {
 
 
         return eventRepository.findAll(booleanExpression, page)
-                .stream().toList()
                 .stream()
+                .peek(event -> event.setConfirmedRequests(
+                        requestRepository.countByStatusAndEventId(RequestStatus.CONFIRMED, event.getId())))
                 .map(eventMapper::eventToEventFullDto)
                 .toList();
     }

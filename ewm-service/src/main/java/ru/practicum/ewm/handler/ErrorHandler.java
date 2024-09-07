@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -56,6 +57,13 @@ public class ErrorHandler {
     public ApiError handleException(final Exception e) {
         log.warn("Error", e);
         return createApiError(e, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler({MissingServletRequestParameterException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleException(final MissingServletRequestParameterException e) {
+        log.warn("Error", e);
+        return createApiError(e, HttpStatus.BAD_REQUEST);
     }
 
     private ApiError createApiError(Exception e, HttpStatus status) {

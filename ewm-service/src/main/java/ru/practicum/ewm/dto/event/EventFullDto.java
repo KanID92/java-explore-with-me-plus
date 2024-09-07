@@ -14,7 +14,7 @@ public record EventFullDto(
 
         CategoryDto category,
 
-        Long confirmedRequests,
+        long confirmedRequests,
 
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", shape = JsonFormat.Shape.STRING)
         LocalDateTime createdOn,
@@ -43,7 +43,7 @@ public record EventFullDto(
 
         String title,
 
-        Long views
+        long views
 ) {
 
 }

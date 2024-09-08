@@ -21,4 +21,8 @@ public interface EventService {
     List<EventShortDto> getAllByInitiatorOrPublic(EventSearchParams searchParams, HitDto hitDto);
 
     List<EventFullDto> getAllByAdmin(EventSearchParams searchParams);
+
+    void addLike(long userId, long eventId);
+
+    void deleteLike(long userId, long eventId);
 }

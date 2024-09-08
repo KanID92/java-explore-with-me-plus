@@ -318,4 +318,27 @@ public class EventServiceImpl implements EventService {
         return eventMapper.eventToEventFullDto(updatedEvent);
     }
 
+    @Override
+    public void addLike(long userId, long eventId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
+        //TODO проверка на то, что эвент опубликован
+        eventRepository.addLike(userId, eventId);
+    }
+
+    @Override
+    public void deleteLike(long userId, long eventId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
+        if (eventRepository.checkLikeExisting(userId, eventId)) {
+            eventRepository.deleteLike(userId, eventId);
+        } else {
+            throw new NotFoundException("Like for event: " + eventId + " by user: " + user.getId() + " not exist");
+        }
+    }
+
 }

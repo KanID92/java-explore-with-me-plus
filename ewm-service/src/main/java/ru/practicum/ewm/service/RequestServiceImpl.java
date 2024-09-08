@@ -168,4 +168,6 @@ public class RequestServiceImpl implements RequestService {
 
         return new EventRequestStatusUpdateResult(confirmedRequestsDtoList, rejectedRequestsDtoList);
     }
+
+
 }

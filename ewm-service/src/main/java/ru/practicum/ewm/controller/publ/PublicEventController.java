@@ -70,10 +70,9 @@ public class PublicEventController {
                 httpRequest.getRemoteAddr(),
                 LocalDateTime.now().format(dateTimeFormatter));
 
-        List<EventShortDto> eventShortDtoList = eventService.getAllByInitiatorOrPublic(eventSearchParams, hitDto);
+        List<EventShortDto> eventShortDtoList = eventService.getAllByPublic(eventSearchParams, hitDto);
         log.info("<== GET /events Returning public searching events. List size: {}",
                 eventShortDtoList.size());
-        //TODO Statistic?
         return eventShortDtoList;
     }
 

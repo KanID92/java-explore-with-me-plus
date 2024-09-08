@@ -2,6 +2,7 @@ package ru.practicum.ewm.service;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,11 +27,11 @@ import ru.practicum.ewm.repository.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 
 import static ru.practicum.ewm.entity.QEvent.event;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
@@ -60,99 +61,96 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<EventShortDto> getAllByInitiatorOrPublic(EventSearchParams searchParams, HitDto hitDto) {
+    public List<EventShortDto> getAllByInitiator(EventSearchParams searchParams) {
 
-        List<Event> eventListBySearch = new ArrayList<>();
+        long initiatorId = searchParams.getPrivateSearchParams().getInitiatorId();
+        User user = userRepository.findById(initiatorId)
+                .orElseThrow(() -> new NotFoundException("User with id " + initiatorId + " not found"));
+        Pageable page = PageRequest.of(searchParams.getFrom(), searchParams.getSize());
 
-        if (searchParams.getPrivateSearchParams() != null) { //private
-            long initiatorId = searchParams.getPrivateSearchParams().getInitiatorId();
-            User user = userRepository.findById(initiatorId)
-                    .orElseThrow(() -> new NotFoundException("User with id " + initiatorId + " not found"));
-            Pageable page = PageRequest.of(searchParams.getFrom(), searchParams.getSize());
-            eventListBySearch = eventRepository.findAllByInitiatorId(initiatorId, page);
+        return eventRepository.findAllByInitiatorId(initiatorId, page).stream()
+                .map(eventMapper::eventToEventShortDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EventShortDto> getAllByPublic(EventSearchParams searchParams, HitDto hitDto) {
+
+        Pageable page = PageRequest.of(searchParams.getFrom(), searchParams.getSize());
+
+        BooleanExpression booleanExpression = event.isNotNull();
+
+        PublicSearchParams publicSearchParams = searchParams.getPublicSearchParams();
+
+        if (publicSearchParams.getText() != null) { //наличие поиска по тексту
+            booleanExpression = booleanExpression.andAnyOf(
+                    event.annotation.likeIgnoreCase(publicSearchParams.getText()),
+                    event.description.likeIgnoreCase(publicSearchParams.getText())
+            );
         }
 
-        if (searchParams.getPublicSearchParams() != null) { //public
-            Pageable page = PageRequest.of(searchParams.getFrom(), searchParams.getSize());
+        if (publicSearchParams.getCategories() != null) { // наличие поиска по категориям
+            booleanExpression = booleanExpression.and(
+                    event.category.id.in((publicSearchParams.getCategories())));
+        }
 
-            BooleanExpression booleanExpression = event.isNotNull();
+        if (publicSearchParams.getPaid() != null) { // наличие поиска по категориям
+            booleanExpression = booleanExpression.and(
+                    event.paid.eq(publicSearchParams.getPaid()));
+        }
 
-            PublicSearchParams publicSearchParams = searchParams.getPublicSearchParams();
+        LocalDateTime rangeStart = publicSearchParams.getRangeStart();
+        LocalDateTime rangeEnd = publicSearchParams.getRangeEnd();
 
-            if (publicSearchParams.getText() != null) { //наличие поиска по тексту
-                booleanExpression = booleanExpression.andAnyOf(
-                        event.annotation.likeIgnoreCase(publicSearchParams.getText()),
-                        event.description.likeIgnoreCase(publicSearchParams.getText())
-                );
+        if (rangeStart != null && rangeEnd != null) { // наличие поиска дате события
+            booleanExpression = booleanExpression.and(
+                    event.eventDate.between(rangeStart, rangeEnd)
+            );
+        } else if (rangeStart != null) {
+            booleanExpression = booleanExpression.and(
+                    event.eventDate.after(rangeStart)
+            );
+            rangeEnd = rangeStart.plusYears(100);
+        } else if (publicSearchParams.getRangeEnd() != null) {
+            booleanExpression = booleanExpression.and(
+                    event.eventDate.before(rangeEnd)
+            );
+            rangeStart = LocalDateTime.parse(LocalDateTime.now().format(dateTimeFormatter), dateTimeFormatter);
+        }
+
+        if (rangeEnd == null && rangeStart == null) {
+            booleanExpression = booleanExpression.and(
+                    event.eventDate.after(LocalDateTime.now())
+            );
+            rangeStart = LocalDateTime.parse(LocalDateTime.now().format(dateTimeFormatter), dateTimeFormatter);
+            rangeEnd = rangeStart.plusYears(100);
+        }
+
+        List<Event> eventListBySearch = eventListBySearch =
+                eventRepository.findAll(booleanExpression, page).stream().toList();
+
+        statClient.saveHit(hitDto);
+
+
+        for (Event event : eventListBySearch) {
+            List<HitStatDto> hitStatDtoList = statClient.getStats(
+                    rangeStart.format(dateTimeFormatter),
+                    rangeEnd.format(dateTimeFormatter),
+                    List.of("/event/" + event.getId()),
+                    false);
+            Long view = 0L;
+            for (HitStatDto hitStatDto : hitStatDtoList) {
+                view += hitStatDto.getHits();
             }
-
-            if (publicSearchParams.getCategories() != null) { // наличие поиска по категориям
-                booleanExpression = booleanExpression.and(
-                        event.category.id.in((publicSearchParams.getCategories())));
-            }
-
-            if (publicSearchParams.getPaid() != null) { // наличие поиска по категориям
-                booleanExpression = booleanExpression.and(
-                        event.paid.eq(publicSearchParams.getPaid()));
-            }
-
-            LocalDateTime rangeStart = publicSearchParams.getRangeStart();
-            LocalDateTime rangeEnd = publicSearchParams.getRangeEnd();
-
-            if (rangeStart != null && rangeEnd != null) { // наличие поиска дате события
-                booleanExpression = booleanExpression.and(
-                        event.eventDate.between(rangeStart, rangeEnd)
-                );
-            } else if (rangeStart != null) {
-                booleanExpression = booleanExpression.and(
-                        event.eventDate.after(rangeStart)
-                );
-                rangeEnd = rangeStart.plusYears(100);
-            } else if (publicSearchParams.getRangeEnd() != null) {
-                booleanExpression = booleanExpression.and(
-                        event.eventDate.before(rangeEnd)
-                );
-                rangeStart = LocalDateTime.parse(LocalDateTime.now().format(dateTimeFormatter), dateTimeFormatter);
-            }
-
-            if (rangeEnd == null && rangeStart == null) {
-                booleanExpression = booleanExpression.and(
-                        event.eventDate.after(LocalDateTime.now())
-                );
-                rangeStart = LocalDateTime.parse(LocalDateTime.now().format(dateTimeFormatter), dateTimeFormatter);
-                rangeEnd = rangeStart.plusYears(100);
-            }
-
-//            if (!publicSearchParams.getOnlyAvailable()) { //TODO after Requests
-//                requestRepository.countByStatusAndEventId(eve)
-//                booleanExpression = booleanExpression.and(reques.loe(event.participantLimit));
-//            }
-
-            eventListBySearch = eventRepository.findAll(booleanExpression, page).stream().toList();
-
-            statClient.saveHit(hitDto); //TODO перенести?
-
-
-            for (Event event : eventListBySearch) {
-                List<HitStatDto> hitStatDtoList = statClient.getStats(
-                        rangeStart.format(dateTimeFormatter),
-                        rangeEnd.format(dateTimeFormatter),
-                        List.of("/event/" + event.getId()),
-                        false);
-                Long view = 0L;
-                for (HitStatDto hitStatDto : hitStatDtoList) {
-                    view += hitStatDto.getHits();
-                }
-                event.setViews(view);
-                event.setConfirmedRequests(
-                        requestRepository.countByStatusAndEventId(RequestStatus.CONFIRMED, event.getId()));
-            }
+            event.setViews(view);
+            event.setConfirmedRequests(
+                    requestRepository.countByStatusAndEventId(RequestStatus.CONFIRMED, event.getId()));
         }
 
         return eventListBySearch.stream()
                 .map(eventMapper::eventToEventShortDto)
                 .toList();
-
     }
 
     @Override
@@ -192,14 +190,16 @@ public class EventServiceImpl implements EventService {
                     event.eventDate.before(rangeEnd));
         }
 
+        List<Event> receivedEventList = eventRepository.findAll(booleanExpression, page).stream().toList();
+        for (Event event : receivedEventList) {
+            event.setConfirmedRequests(requestRepository.countByStatusAndEventId(RequestStatus.CONFIRMED, event.getId()));
+        }
 
-
-        return eventRepository.findAll(booleanExpression, page)
+        return receivedEventList
                 .stream()
-                .peek(event -> event.setConfirmedRequests(
-                        requestRepository.countByStatusAndEventId(RequestStatus.CONFIRMED, event.getId())))
                 .map(eventMapper::eventToEventFullDto)
                 .toList();
+
     }
 
 
@@ -268,7 +268,7 @@ public class EventServiceImpl implements EventService {
             }
 
             StateAction stateAction = updateParams.updateEventUserRequest().stateAction();
-            System.out.println("State action received from params: " + stateAction);
+            log.debug("State action received from params: {}", stateAction);
 
             if (stateAction != null) {
                 switch (stateAction) {
@@ -280,9 +280,9 @@ public class EventServiceImpl implements EventService {
                 }
             }
 
-            System.out.println("Private. Событие до мапинга: " + event);
+            log.debug("Private. Событие до мапинга: {}", event);
             eventMapper.updateEventUserRequestToEvent(event, updateParams.updateEventUserRequest());
-            System.out.println("Private. Событие после мапинга для сохранения: " + event);
+            log.debug("Private. Событие после мапинга для сохранения: {}", event);
 
         }
 
@@ -304,16 +304,16 @@ public class EventServiceImpl implements EventService {
                 throw new IncorrectValueException(
                         "Admin. Cannot update event: event date must be not earlier then after 2 hours ");
             }
-            System.out.println("Admin. Событие до мапинга: " + event.getId() + "; " + event.getState());
+            log.debug("Admin. Событие до мапинга: {}; {}", event.getId(), event.getState());
             eventMapper.updateEventAdminRequestToEvent(event, updateParams.updateEventAdminRequest());
-            System.out.println("Admin. Событие после мапинга для сохранения: " + event.getId() + "; " + event.getState());
+            log.debug("Admin. Событие после мапинга для сохранения: {}, {}", event.getId(), event.getState());
 
         }
         event.setId(eventId);
 
         updatedEvent = eventRepository.save(event);
 
-        System.out.println("Событие возвращенное из базы: "  + event.getId() + "; " + event.getState());
+        log.debug("Событие возвращенное из базы: {} ; {}", event.getId(), event.getState());
 
         return eventMapper.eventToEventFullDto(updatedEvent);
     }

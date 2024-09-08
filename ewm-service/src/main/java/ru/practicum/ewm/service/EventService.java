@@ -18,7 +18,9 @@ public interface EventService {
 
     EventFullDto update(long eventId, EventUpdateParams updateParams);
 
-    List<EventShortDto> getAllByInitiatorOrPublic(EventSearchParams searchParams, HitDto hitDto);
-
     List<EventFullDto> getAllByAdmin(EventSearchParams searchParams);
+
+    List<EventShortDto> getAllByInitiator(EventSearchParams searchParams);
+
+    List<EventShortDto> getAllByPublic(EventSearchParams searchParams, HitDto hitDto);
 }

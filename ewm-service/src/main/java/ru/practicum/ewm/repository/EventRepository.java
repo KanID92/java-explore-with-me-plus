@@ -1,6 +1,5 @@
 package ru.practicum.ewm.repository;
 
-//import com.querydsl.core.types.dsl.BooleanExpression;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
@@ -14,7 +13,5 @@ public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPre
     List<Event> findAllByInitiatorId(long initiatorId, Pageable pageable);
 
     Optional<Event> findByInitiatorIdAndId(long initiatorId, long eventId);
-
-//    List<Event> findAll(BooleanExpression booleanExpression, Pageable pageable);
 
 }

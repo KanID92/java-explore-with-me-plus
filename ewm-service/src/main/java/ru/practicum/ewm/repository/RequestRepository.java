@@ -29,7 +29,4 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
     @Query(value = "SELECT r from Request r where r.status = ?1")
     List<Request> findAllByStatus(RequestStatus status);
 
-
-
-
 }

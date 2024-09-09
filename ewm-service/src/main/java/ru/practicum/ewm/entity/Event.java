@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.time.LocalDateTime;
 
@@ -13,7 +12,6 @@ import java.time.LocalDateTime;
 @Setter
 @EqualsAndHashCode(of = {"id"})
 @Table(name = "EVENTS")
-@ToString
 public class Event {
 
     @Id

@@ -53,7 +53,7 @@ public class PrivateEventController {
         searchParams.setFrom(from);
         searchParams.setSize(size);
         List<EventShortDto> receivedEventsDtoList =
-                eventService.getAllByInitiatorOrPublic(searchParams, null);
+                eventService.getAllByInitiator(searchParams);
 
         log.info("<== GET. /users/{userId}/events " +
                 "Returning all user id {} event: size {}", userId, receivedEventsDtoList.size());

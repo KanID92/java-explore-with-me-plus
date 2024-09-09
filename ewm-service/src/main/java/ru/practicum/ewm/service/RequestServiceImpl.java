@@ -2,8 +2,7 @@ package ru.practicum.ewm.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.ewm.controller.priv.PrivateUpdateRequestParams;
 import ru.practicum.ewm.dto.request.EventRequestStatusUpdateResult;
@@ -20,11 +19,11 @@ import ru.practicum.ewm.repository.UserRepository;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RequestServiceImpl implements RequestService {
 
-    private static final Logger log = LoggerFactory.getLogger(RequestServiceImpl.class);
     private final RequestRepository requestRepository;
 
     private final UserRepository userRepository;
@@ -133,12 +132,12 @@ public class RequestServiceImpl implements RequestService {
 
             if (event.isRequestModeration()) { // Проверка необходимости модерации
                 String status = params.eventRequestStatusUpdateRequest().status().toString();
-                System.out.println("Cтатус для обновления: " + status);
+                log.debug("State for update: {}", status);
                 requestRepository.updateStatus(
                         status, request.getId());
                 Request modifiedRequest = requestRepository.findById(request.getId())
                         .orElseThrow(() -> new NotFoundException("Request with id " + request.getId() + " not found"));
-                System.out.println("Обновленный " + modifiedRequest.getId() + " " + modifiedRequest.getStatus());
+                log.debug("Updated {} {}", modifiedRequest.getId(), modifiedRequest.getStatus());
                 if (params.eventRequestStatusUpdateRequest().status() == RequestStatus.CONFIRMED) { //увеличение счетчика подтвержденных событий, в случае потверждения
                     confirmedRequestsCount++;
                 }
@@ -156,7 +155,7 @@ public class RequestServiceImpl implements RequestService {
                         .toList();
         List<Request> rejectedRequests = requestRepository.findAllByStatus(RequestStatus.REJECTED);
         for (Request request : rejectedRequests) {
-            System.out.println(request.getId() + " id, status: " + request.getStatus());
+            log.debug("{} id, status: {}", request.getId(), request.getStatus());
         }
 
         List<ParticipationRequestDto> rejectedRequestsDtoList =

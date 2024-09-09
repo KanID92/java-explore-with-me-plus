@@ -117,19 +117,20 @@ public class PrivateEventController {
     }
 
     @PutMapping("/{eventId}/likes")
-    public void addLike( //Добавление лайка события
+    public EventShortDto addLike(//Добавление лайка события
             @PathVariable long userId,
             @PathVariable long eventId
     ) {
         log.info("==> PUT. /users/{userId}/events/{eventId}/likes" +
                 "Adding like for event with id: {} by user with id: {}", eventId, userId);
-        eventService.addLike(userId, eventId);
+        EventShortDto eventShortDto = eventService.addLike(userId, eventId);
         log.info("<== PUT. /users/{userId}/events/{eventId}/likes" +
                 "Like for event with id: {} by user with id: {} added.", eventId, userId);
+        return eventShortDto;
     }
 
     @DeleteMapping("/{eventId}/likes")
-    public void deleteLike( //удаление лайка события
+    public void deleteLike(//удаление лайка события
                                   @PathVariable long userId,
                                   @PathVariable long eventId
     ) {

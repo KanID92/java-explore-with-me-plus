@@ -21,7 +21,12 @@ public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPre
     @Query(value = "DELETE FROM LIKES_EVENTS WHERE USER_ID = :userId AND EVENT_ID = :eventId", nativeQuery = true)
     void deleteLike(Long userId, Long eventId);
 
-    @Query(value = "SELECT EXISTS (SELECT * FROM LIKES_EVENTS WHERE USER_ID = :userId AND EVENT_ID = :eventId)")
+
+    @Query(value = "SELECT EXISTS (" +
+            "SELECT * FROM LIKES_EVENTS WHERE USER_ID = :userId AND EVENT_ID = :eventId)", nativeQuery = true)
     boolean checkLikeExisting(Long userId, Long eventId);
+
+    @Query(value = "SELECT COUNT(*) FROM LIKES_EVENTS WHERE EVENT_ID = :eventId", nativeQuery = true)
+    long countLikesByEventId(Long eventId);
 
 }

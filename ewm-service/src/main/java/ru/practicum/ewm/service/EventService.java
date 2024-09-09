@@ -20,7 +20,7 @@ public interface EventService {
 
     List<EventFullDto> getAllByAdmin(EventSearchParams searchParams);
 
-    void addLike(long userId, long eventId);
+    EventShortDto addLike(long userId, long eventId);
 
     void deleteLike(long userId, long eventId);
 

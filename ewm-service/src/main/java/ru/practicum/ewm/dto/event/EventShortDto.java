@@ -33,7 +33,9 @@ public record EventShortDto(
 
         String title,
 
-        Long views
+        Long views,
+
+        Long likesCount
 
 ) {
 }

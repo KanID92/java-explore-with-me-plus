@@ -97,4 +97,7 @@ public class PublicEventController {
         return eventFullDto;
     }
 
+
+
+
 }

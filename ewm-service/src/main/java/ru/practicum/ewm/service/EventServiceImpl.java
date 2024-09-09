@@ -67,8 +67,11 @@ public class EventServiceImpl implements EventService {
         User user = userRepository.findById(initiatorId)
                 .orElseThrow(() -> new NotFoundException("User with id " + initiatorId + " not found"));
         Pageable page = PageRequest.of(searchParams.getFrom(), searchParams.getSize());
-
-        return eventRepository.findAllByInitiatorId(initiatorId, page).stream()
+        List<Event> receivedEvents = eventRepository.findAllByInitiatorId(initiatorId, page);
+        for (Event event : receivedEvents) {
+            event.setLikes(eventRepository.countLikesByEventId(event.getId()));
+        }
+        return receivedEvents.stream()
                 .map(eventMapper::eventToEventShortDto)
                 .toList();
     }
@@ -146,6 +149,7 @@ public class EventServiceImpl implements EventService {
             event.setViews(view);
             event.setConfirmedRequests(
                     requestRepository.countByStatusAndEventId(RequestStatus.CONFIRMED, event.getId()));
+            event.setLikes(eventRepository.countLikesByEventId(event.getId()));
         }
 
         return eventListBySearch.stream()
@@ -193,6 +197,7 @@ public class EventServiceImpl implements EventService {
         List<Event> receivedEventList = eventRepository.findAll(booleanExpression, page).stream().toList();
         for (Event event : receivedEventList) {
             event.setConfirmedRequests(requestRepository.countByStatusAndEventId(RequestStatus.CONFIRMED, event.getId()));
+            event.setLikes(eventRepository.countLikesByEventId(event.getId()));
         }
 
         return receivedEventList
@@ -229,6 +234,7 @@ public class EventServiceImpl implements EventService {
             receivedEvent.setViews(view);
             receivedEvent.setConfirmedRequests(
                     requestRepository.countByStatusAndEventId(RequestStatus.CONFIRMED, receivedEvent.getId()));
+            receivedEvent.setLikes(eventRepository.countLikesByEventId(receivedEvent.getId()));
         }
         return eventMapper.eventToEventFullDto(receivedEvent);
     }
@@ -313,19 +319,26 @@ public class EventServiceImpl implements EventService {
 
         updatedEvent = eventRepository.save(event);
 
+        updatedEvent.setLikes(eventRepository.countLikesByEventId(updatedEvent.getId()));
+
         log.debug("Событие возвращенное из базы: {} ; {}", event.getId(), event.getState());
 
         return eventMapper.eventToEventFullDto(updatedEvent);
     }
 
     @Override
-    public void addLike(long userId, long eventId) {
+    public EventShortDto addLike(long userId, long eventId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
-        //TODO проверка на то, что эвент опубликован
+        if (event.getState() != EventState.PUBLISHED) {
+            throw new ConflictException("Event with id " + eventId + " is not published");
+        }
         eventRepository.addLike(userId, eventId);
+        return eventMapper.eventToEventShortDto(
+                eventRepository.findById(eventId)
+                        .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found")));
     }
 
     @Override

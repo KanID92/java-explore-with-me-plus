@@ -1,10 +1,13 @@
-package ru.practicum;
+package ru.practicum.client;
+
+import ru.practicum.HitDto;
+import ru.practicum.HitStatDto;
 
 import java.util.List;
 
 public interface StatClient {
 
-    HitDto saveHit(HitDto hitDto);
+    void saveHit(HitDto hitDto);
 
     List<HitStatDto> getStats(final String startTime,
                               final String endTime,

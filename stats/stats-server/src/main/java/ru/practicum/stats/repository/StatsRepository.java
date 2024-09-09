@@ -17,5 +17,7 @@ public interface StatsRepository extends JpaRepository<Hit, Long> {
     @Query("select h from Hit h " +
             "where h.timestamp > :start and h.timestamp < :end")
     List<Hit> getStat(LocalDateTime start, LocalDateTime end);
+
+    List<Hit> findAllByUriIn(List<String> uris);
 }
 

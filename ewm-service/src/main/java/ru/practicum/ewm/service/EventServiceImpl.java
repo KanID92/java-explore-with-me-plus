@@ -27,7 +27,8 @@ import ru.practicum.ewm.repository.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static ru.practicum.ewm.entity.QEvent.event;
 
@@ -159,6 +160,79 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<EventShortDto> getTopEvent(Integer count, HitDto hitDto) {
+
+        String rangeEnd = LocalDateTime.now().format(dateTimeFormatter);
+        String rangeStart = LocalDateTime.now().minusYears(100).format(dateTimeFormatter);
+
+        List<Event> eventListBySearch = eventRepository.findTop(count);
+
+        statClient.saveHit(hitDto);
+
+        for (Event event : eventListBySearch) {
+            List<HitStatDto> hitStatDtoList = statClient.getStats(
+                    rangeStart,
+                    rangeEnd,
+                    List.of("/event/" + event.getId()),
+                    true);
+            Long view = 0L;
+            for (HitStatDto hitStatDto : hitStatDtoList) {
+                view += hitStatDto.getHits();
+            }
+            event.setViews(view);
+            event.setConfirmedRequests(
+                    requestRepository.countByStatusAndEventId(RequestStatus.CONFIRMED, event.getId()));
+            event.setLikes(eventRepository.countLikesByEventId(event.getId()));
+        }
+
+        return eventListBySearch.stream()
+                .map(eventMapper::eventToEventShortDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EventShortDto> getTopViewEvent(Integer count, HitDto hitDto) {
+
+        String rangeEnd = LocalDateTime.now().format(dateTimeFormatter);
+        String rangeStart = LocalDateTime.now().minusYears(100).format(dateTimeFormatter);
+
+        statClient.saveHit(hitDto);
+
+        List<HitStatDto> hitStatDtoList = statClient.getStats(
+                rangeStart,
+                rangeEnd,
+                null,
+                true);
+
+        Map<Long, Long> idsMap = hitStatDtoList.stream().filter(it -> it.getUri().matches("\\/events\\/\\d+$"))
+                        .collect((Collectors.groupingBy(dto ->
+                                Long.parseLong(dto.getUri().replace("/events/", "")),
+                                Collectors.summingLong(HitStatDto::getHits))));
+
+        Set<Long> ids = idsMap.keySet();
+        List<Event> eventListBySearch = eventRepository.findAllById(ids);
+        List<Event> result = new ArrayList<>();
+        idsMap.entrySet().stream()
+                .sorted(Map.Entry.<Long, Long>comparingByValue().reversed())
+                .limit(count)
+                .forEach(it -> {
+                            Optional<Event> e = eventListBySearch.stream().filter(event ->
+                                    event.getId() == it.getKey()).findFirst();
+                            if (e.isPresent()) {
+                                Event eventRes = e.get();
+                                eventRes.setViews(it.getValue());
+                                result.add(eventRes);
+                            }
+                        }
+                );
+        return result.stream()
+                .map(eventMapper::eventToEventShortDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<EventFullDto> getAllByAdmin(EventSearchParams searchParams) {
         Pageable page = PageRequest.of(
                 searchParams.getFrom(), searchParams.getSize());
@@ -232,6 +306,7 @@ public class EventServiceImpl implements EventService {
                 view += hitStatDto.getHits();
             }
             receivedEvent.setViews(view);
+            receivedEvent.setLikes(eventRepository.countLikesByEventId(params.eventId()));
             receivedEvent.setConfirmedRequests(
                     requestRepository.countByStatusAndEventId(RequestStatus.CONFIRMED, receivedEvent.getId()));
             receivedEvent.setLikes(eventRepository.countLikesByEventId(receivedEvent.getId()));
@@ -336,9 +411,8 @@ public class EventServiceImpl implements EventService {
             throw new ConflictException("Event with id " + eventId + " is not published");
         }
         eventRepository.addLike(userId, eventId);
-        return eventMapper.eventToEventShortDto(
-                eventRepository.findById(eventId)
-                        .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found")));
+        event.setLikes(eventRepository.countLikesByEventId(eventId));
+        return eventMapper.eventToEventShortDto(event);
     }
 
     @Override

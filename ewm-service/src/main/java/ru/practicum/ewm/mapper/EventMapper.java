@@ -38,6 +38,7 @@ public abstract class EventMapper {
 
     public abstract EventFullDto eventToEventFullDto(Event event);
 
+    @Mapping(source = "likes", target = "likesCount")
     public abstract EventShortDto eventToEventShortDto(Event event);
 
     @Named("getCurrentLocalDatetime")

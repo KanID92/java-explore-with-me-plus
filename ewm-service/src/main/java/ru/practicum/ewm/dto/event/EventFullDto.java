@@ -45,7 +45,7 @@ public record EventFullDto(
 
         long views,
 
-        Long likesCount
+        long likesCount
 
 ) {
 

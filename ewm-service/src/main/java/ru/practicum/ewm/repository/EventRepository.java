@@ -2,8 +2,10 @@ package ru.practicum.ewm.repository;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.entity.Event;
 
 import java.util.List;
@@ -15,7 +17,9 @@ public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPre
 
     Optional<Event> findByInitiatorIdAndId(long initiatorId, long eventId);
 
-    @Query(value = "MERGE INTO LIKES_EVENTS (USER_ID, EVENT_ID) values (:userId, :eventId)", nativeQuery = true)
+    @Modifying
+    @Transactional
+    @Query(value = "INSERT INTO LIKES_EVENTS (USER_ID, EVENT_ID) values (:userId, :eventId)", nativeQuery = true)
     void addLike(Long userId, Long eventId);
 
     @Query(value = "DELETE FROM LIKES_EVENTS WHERE USER_ID = :userId AND EVENT_ID = :eventId", nativeQuery = true)
@@ -29,4 +33,10 @@ public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPre
     @Query(value = "SELECT COUNT(*) FROM LIKES_EVENTS WHERE EVENT_ID = :eventId", nativeQuery = true)
     long countLikesByEventId(Long eventId);
 
+    @Query(value = "SELECT E.*, RATE.LIKES FROM EVENTS E LEFT JOIN (\n" +
+                        "SELECT EVENT_ID, COUNT(*) AS LIKES FROM LIKES_EVENTS\n" +
+                        "GROUP BY EVENT_ID) AS RATE ON E.EVENT_ID = RATE.EVENT_ID\n" +
+                   "ORDER BY RATE.LIKES DESC NULLS LAST\n" +
+                   "LIMIT :count", nativeQuery = true)
+    List<Event> findTop(Integer count);
 }

@@ -22,6 +22,8 @@ public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPre
     @Query(value = "INSERT INTO LIKES_EVENTS (USER_ID, EVENT_ID) values (:userId, :eventId)", nativeQuery = true)
     void addLike(Long userId, Long eventId);
 
+    @Modifying
+    @Transactional
     @Query(value = "DELETE FROM LIKES_EVENTS WHERE USER_ID = :userId AND EVENT_ID = :eventId", nativeQuery = true)
     void deleteLike(Long userId, Long eventId);
 

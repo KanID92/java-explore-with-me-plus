@@ -1,10 +1,13 @@
 package ru.practicum.ewm.controller.priv;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.location.LocationDto;
 import ru.practicum.ewm.service.LocationService;
+
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -37,6 +40,18 @@ public class PrivateLocationController {
         locationService.deleteLike(userId, locationId);
         log.info("<== DELETE. /users/{userId}/events/{eventId}/likes" +
                 "Like for location with id: {} by user with id: {} deleted.", locationId, userId);
+    }
+
+    @GetMapping("/top")
+    public List<LocationDto> getTop(
+            @PathVariable long userId,
+            @RequestParam(required = false, defaultValue = "10") Integer count,
+            HttpServletRequest httpRequest) {
+        log.info("==> GET /users/{userId}/locations/top");
+
+        List<LocationDto> locationDtoList = locationService.getTop(userId, count);
+        log.info("<== GET /users/{userId}/locations/top Returning top {} locations.", count);
+        return locationDtoList;
     }
 
 

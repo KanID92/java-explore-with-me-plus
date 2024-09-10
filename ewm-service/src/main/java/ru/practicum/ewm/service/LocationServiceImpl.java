@@ -10,6 +10,8 @@ import ru.practicum.ewm.mapper.LocationMapper;
 import ru.practicum.ewm.repository.LocationRepository;
 import ru.practicum.ewm.repository.UserRepository;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class LocationServiceImpl implements LocationService {
@@ -41,6 +43,22 @@ public class LocationServiceImpl implements LocationService {
             throw new NotFoundException("Like for Location: " + locationId + " by user: " + user.getId() + " not exist");
         }
 
+    }
+
+    @Override
+    public List<LocationDto> getTop(long userId, Integer count) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
+
+        List<Location> locationTopList = locationRepository.findTop(count);
+
+        for (Location location : locationTopList) {
+            location.setLikes(locationRepository.countLikesByLocationId(location.getId()));
+        }
+
+        return locationTopList.stream()
+                .map(locationMapper::locationToLocationDto)
+                .toList();
     }
 
 }

@@ -25,4 +25,7 @@ public class Location {
     @Column(name = "LON")
     private Float lon;
 
+    @Transient
+    Long likes;
+
 }

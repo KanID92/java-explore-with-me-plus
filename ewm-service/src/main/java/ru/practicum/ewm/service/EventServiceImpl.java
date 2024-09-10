@@ -421,6 +421,7 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
+        boolean isLikeExist = eventRepository.checkLikeExisting(userId, eventId);
         if (eventRepository.checkLikeExisting(userId, eventId)) {
             eventRepository.deleteLike(userId, eventId);
         } else {

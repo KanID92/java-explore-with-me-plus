@@ -306,7 +306,6 @@ public class EventServiceImpl implements EventService {
                 view += hitStatDto.getHits();
             }
             receivedEvent.setViews(view);
-            receivedEvent.setLikes(eventRepository.countLikesByEventId(params.eventId()));
             receivedEvent.setConfirmedRequests(
                     requestRepository.countByStatusAndEventId(RequestStatus.CONFIRMED, receivedEvent.getId()));
             receivedEvent.setLikes(eventRepository.countLikesByEventId(receivedEvent.getId()));
@@ -422,7 +421,7 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
         boolean isLikeExist = eventRepository.checkLikeExisting(userId, eventId);
-        if (eventRepository.checkLikeExisting(userId, eventId)) {
+        if (isLikeExist) {
             eventRepository.deleteLike(userId, eventId);
         } else {
             throw new NotFoundException("Like for event: " + eventId + " by user: " + user.getId() + " not exist");

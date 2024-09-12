@@ -43,7 +43,10 @@ public record EventFullDto(
 
         String title,
 
-        long views
+        long views,
+
+        long likesCount
+
 ) {
 
 }

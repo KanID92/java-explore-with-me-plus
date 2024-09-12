@@ -68,4 +68,7 @@ public class Event {
     @Transient
     Long views;
 
+    @Transient
+    Long likes;
+
 }
